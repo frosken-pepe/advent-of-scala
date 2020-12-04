@@ -30,8 +30,8 @@ object Day04 extends App {
       case _ => false
     },
     "hgt" -> {
-      case hgt(h, cm) if cm == "cm" => (150 to 193) contains h.toInt
-      case hgt(h, in) if in == "in" => (59 to 76) contains h.toInt
+      case hgt(h, "cm") => (150 to 193) contains h.toInt
+      case hgt(h, "in") => (59 to 76) contains h.toInt
       case _ => false
     },
     "hcl" -> {
@@ -49,12 +49,12 @@ object Day04 extends App {
     fields.map(_.split(':').toList).count(validField) == expectedFields.size
   }
 
-  println(passports.count(p => isValid(p) {
+  println(passports.count(isValid(_) {
     case field :: _ :: Nil if expectedFields.contains(field) => true
     case _ => false
   }))
 
-  println(passports.count(p => isValid(p) {
+  println(passports.count(isValid(_) {
     case field :: value :: Nil if expectedFields.contains(field) && expectedFields(field)(value) => true
     case _ => false
   }))
