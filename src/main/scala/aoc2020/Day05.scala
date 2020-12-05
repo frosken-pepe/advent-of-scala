@@ -5,7 +5,8 @@ import scala.io.Source
 object Day05 extends App {
 
   def binToInt(seq: Seq[Char], one: Char): Int = seq.foldLeft(0) {
-    case (acc, b) => 2 * acc + (if (b == one) 1 else 0)
+    case (acc, `one`) => 2 * acc + 1
+    case (acc, _) => 2 * acc
   }
 
   def seatID(s: String) = {
