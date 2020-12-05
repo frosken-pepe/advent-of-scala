@@ -10,7 +10,8 @@ object Day05 extends App {
   }
 
   def seatID(s: String) = {
-    8 * binToInt(s.take(7), 'B') + binToInt(s.drop(7), 'R')
+    val (r, c) = s splitAt 7
+    8 * binToInt(r, 'B') + binToInt(c, 'R')
   }
 
   val ids = Source.fromFile("inputs/2020/05.txt").getLines().map(seatID).toSet
