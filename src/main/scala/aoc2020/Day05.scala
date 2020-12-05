@@ -4,23 +4,15 @@ import scala.io.Source
 
 object Day05 extends App {
 
-  def binToInt(seq: Seq[Int]): Int = seq.reverse.zipWithIndex.foldLeft(0) {
-    case (acc, (b, e)) => acc + b * (1 << e)
+  def binToInt(seq: Seq[Char], one: Char): Int = seq.foldLeft(0) {
+    case (acc, b) => 2 * acc + (if (b == one) 1 else 0)
   }
 
   def seatID(s: String) = {
-    val a = binToInt(s.take(7).map {
-      case 'F' => 0
-      case 'B' => 1
-    })
-    val b = binToInt(s.drop(7).map {
-      case 'L' => 0
-      case 'R' => 1
-    })
-    a * 8 + b
+    8 * binToInt(s.take(7), 'B') + binToInt(s.drop(7), 'R')
   }
 
-  val ids = Source.fromFile("inputs/2020/05.txt").getLines().toList.map(seatID).toSet
+  val ids = Source.fromFile("inputs/2020/05.txt").getLines().map(seatID).toSet
 
   println(ids.max)
 
