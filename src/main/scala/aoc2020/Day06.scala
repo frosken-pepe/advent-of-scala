@@ -2,7 +2,7 @@ package aoc2020
 
 import scala.io.Source
 
-object Day6 extends App {
+object Day06 extends App {
 
   val input = Source.fromFile("inputs/2020/06.txt").getLines().toList
 
