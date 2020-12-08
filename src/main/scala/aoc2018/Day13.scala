@@ -5,7 +5,7 @@ import scala.io.Source
 
 object Day13 extends App {
 
-  // TODO major cleanup
+  // TODO cleanup
 
   val (map, carts) = {
     val lines = Source.fromFile("inputs/2018/13.txt").getLines().toList
@@ -46,44 +46,46 @@ object Day13 extends App {
 
   case class Cart(x: Int, y: Int, dir: Char, lastTurn: Dir) {
 
-    private def turn: Cart = (dir, lastTurn.next) match {
-      case ('^', L) => copy(dir = '<', x = x - 1)
-      case ('<', L) => copy(dir = 'v', y = y + 1)
-      case ('v', L) => copy(dir = '>', x = x + 1)
-      case ('>', L) => copy(dir = '^', y = y - 1)
+    def coords: (Int, Int) = (x, y)
 
-      case ('^', S) => copy(dir = '^', y = y - 1)
-      case ('<', S) => copy(dir = '<', x = x - 1)
-      case ('v', S) => copy(dir = 'v', y = y + 1)
-      case ('>', S) => copy(dir = '>', x = x + 1)
-
-      case ('^', R) => copy(dir = '>', x = x + 1)
-      case ('<', R) => copy(dir = '^', y = y - 1)
-      case ('v', R) => copy(dir = '<', x = x - 1)
-      case ('>', R) => copy(dir = 'v', y = y + 1)
+    private def forward: Cart = dir match {
+      case '^' => copy(y = y - 1)
+      case '<' => copy(x = x - 1)
+      case 'v' => copy(y = y + 1)
+      case '>' => copy(x = x + 1)
     }
 
-    def move(map: List[String]): Cart = (dir, map(y)(x)) match {
-      case ('^', '|') => copy(y = y - 1)
-      case ('<', '-') => copy(x = x - 1)
-      case ('v', '|') => copy(y = y + 1)
-      case ('>', '-') => copy(x = x + 1)
+    private def turn: Cart = ((dir, lastTurn.next) match {
+      case ('^', L) => copy(dir = '<')
+      case ('<', L) => copy(dir = 'v')
+      case ('v', L) => copy(dir = '>')
+      case ('>', L) => copy(dir = '^')
 
-      case ('^', '\\') => copy(x = x - 1, dir = '<')
-      case ('<', '\\') => copy(y = y - 1, dir = '^')
-      case ('v', '\\') => copy(x = x + 1, dir = '>')
-      case ('>', '\\') => copy(y = y + 1, dir = 'v')
+      case (_, S) => this
 
-      case ('^', '/') => copy(x = x + 1, dir = '>')
-      case ('<', '/') => copy(y = y + 1, dir = 'v')
-      case ('v', '/') => copy(x = x - 1, dir = '<')
-      case ('>', '/') => copy(y = y - 1, dir = '^')
+      case ('^', R) => copy(dir = '>')
+      case ('<', R) => copy(dir = '^')
+      case ('v', R) => copy(dir = '<')
+      case ('>', R) => copy(dir = 'v')
+    }).copy(lastTurn = lastTurn.next)
 
-      case (_, '+') => turn.copy(lastTurn = lastTurn.next)
-    }
+    def move(map: List[String]): Cart = ((dir, map(y)(x)) match {
+      case ('^', '\\') => copy(dir = '<')
+      case ('<', '\\') => copy(dir = '^')
+      case ('v', '\\') => copy(dir = '>')
+      case ('>', '\\') => copy(dir = 'v')
+
+      case ('^', '/') => copy(dir = '>')
+      case ('<', '/') => copy(dir = 'v')
+      case ('v', '/') => copy(dir = '<')
+      case ('>', '/') => copy(dir = '^')
+
+      case (_, '+') => turn
+      case (_, _) => this
+    }).forward
   }
 
-  def sortCarts(carts: List[Cart]): List[Cart] = carts.sortBy(cart => (cart.y, cart.x))
+  def sortCarts(carts: List[Cart]): List[Cart] = carts.sortBy(_.coords.swap)
 
   def p1() {
 
@@ -92,8 +94,8 @@ object Day13 extends App {
       else {
         val head = todo.head
         val newCart = head.move(map)
-        val locs = (todo.tail ++ moved).map(c => (c.x, c.y)).toSet
-        if (locs.contains(newCart.x, newCart.y)) Left(newCart.x, newCart.y)
+        val locs = (todo.tail ++ moved).map(_.coords).toSet
+        if (locs.contains(newCart.x, newCart.y)) Left(newCart.coords)
         else moveAll(todo.tail, newCart :: moved)
       }
     }
@@ -116,15 +118,15 @@ object Day13 extends App {
       else {
         val head = todo.head
         val newCart = head.move(map)
-        val locs = (todo.tail ++ moved).map(c => (c.x, c.y)).toSet
-        if (locs.contains(newCart.x, newCart.y)) moveAll(todo.tail.filter(cart => (cart.x, cart.y) != (newCart.x, newCart.y)),
-          moved.filter(cart => (cart.x, cart.y) != (newCart.x, newCart.y)))
+        val locs = (todo.tail ++ moved).map(_.coords).toSet
+        if (locs.contains(newCart.coords)) moveAll(todo.tail.filter(cart => cart.coords != newCart.coords),
+          moved.filter(cart => cart.coords != newCart.coords))
         else moveAll(todo.tail, newCart :: moved)
       }
     }
 
     @tailrec def lastRemaining(carts: List[Cart]): (Int, Int) = {
-      if (carts.size == 1) (carts.head.x, carts.head.y)
+      if (carts.size == 1) (carts.head.coords)
       else lastRemaining(moveAll(sortCarts(carts), Nil))
     }
 
