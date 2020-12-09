@@ -7,44 +7,41 @@ object Day13 extends App {
 
   // TODO cleanup
 
-  val (map, carts) = {
-    val lines = Source.fromFile("inputs/2018/13.txt").getLines().toList
-    val carts = for {
-      y <- lines.indices
-      x <- lines(y).indices
-      ch = lines(y)(x)
-      if Set('^', '<', 'v', '>') contains ch
-    } yield Cart(x, y, ch, R)
-    val map = for {
-      line <- lines
-      mapped = line.map {
-        case '^' => '|'
-        case '<' => '-'
-        case 'v' => '|'
-        case '>' => '-'
-        case x => x
-      }
-    } yield mapped
-    (map, carts.toList)
+  val input = Source.fromFile("inputs/2018/13.txt").getLines().toList
+
+  val carts = (for {
+    y <- input.indices
+    x <- input(y).indices
+    ch = input(y)(x)
+    if Set('^', '<', 'v', '>') contains ch
+  } yield Cart(x, y, ch, R)).toList
+
+  val map = for {
+    line <- input
+    mapped = line.map {
+      case '^' | 'v' => '|'
+      case '<' | '>' => '-'
+      case x => x
+    }
+  } yield mapped
+
+  sealed trait Heading {
+    def next: Heading
   }
 
-  sealed trait Dir {
-    def next: Dir
+  case object L extends Heading {
+    def next: Heading = S
   }
 
-  case object L extends Dir {
-    def next: Dir = S
+  case object S extends Heading {
+    def next: Heading = R
   }
 
-  case object S extends Dir {
-    def next: Dir = R
+  case object R extends Heading {
+    def next: Heading = L
   }
 
-  case object R extends Dir {
-    def next: Dir = L
-  }
-
-  case class Cart(x: Int, y: Int, dir: Char, lastTurn: Dir) {
+  case class Cart(x: Int, y: Int, dir: Char, lastTurn: Heading) {
 
     def coords: (Int, Int) = (x, y)
 
