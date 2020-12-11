@@ -60,19 +60,16 @@ object Day11 extends App {
   } yield dir).toSet
 
   def neighsP2(x: Int, y: Int): Set[(Int, Int)] = {
-    if (neighCache.contains(x, y)) neighCache(x, y)
-    else {
-      val neighs = dirs.flatMap { dir =>
-        LazyList.iterate((x, y)) { case (x, y) => (x + dir._1, y + dir._2) }
-          .drop(1)
-          .dropWhile(p => seats0.contains(p) && seats0(p) == Floor)
-          .takeWhile(seats0.contains)
-          .headOption
-      }
-      neighCache((x, y)) = neighs
-      neighs
+    dirs.flatMap { dir =>
+      LazyList.iterate((x, y)) { case (x, y) => (x + dir._1, y + dir._2) }
+        .drop(1)
+        .dropWhile(p => seats0.contains(p) && seats0(p) == Floor)
+        .takeWhile(seats0.contains)
+        .headOption
     }
   }
 
-  println(findStableConfiguration(LazyList.iterate(seats0)(evolve(neighsP2, 5))))
+  val precomputedNeighs: Map[(Int, Int), Set[(Int, Int)]] = seats0.keys.map(k => k -> neighsP2(k._1, k._2)).toMap
+
+  println(findStableConfiguration(LazyList.iterate(seats0)(evolve((x, y) => precomputedNeighs(x, y), 5))))
 }
