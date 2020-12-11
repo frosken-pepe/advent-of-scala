@@ -12,12 +12,12 @@ object Day10 extends App {
   val all = (List(0, builtin) ++ joltages).sorted
 
   val diffs = all.drop(1).zip(all).map(p => p._1 - p._2).groupBy(identity).map {
-    case (k,v) => (k,v.size)
+    case (k, v) => (k, v.size)
   }
 
   println(diffs(1) * diffs(3))
 
-  def countArrangements(todo: List[Int], prev: Int): Long = {
+  def countArrangements(todo: List[Int]): Long = {
 
     val cache = mutable.Map[(Int, Int), Long]()
 
@@ -39,8 +39,8 @@ object Day10 extends App {
       }
     }
 
-    countArrangementsPrivate(todo, prev)
+    countArrangementsPrivate(todo.sorted, 0)
   }
 
-  println(countArrangements(joltages.sorted, 0))
+  println(countArrangements(joltages))
 }
