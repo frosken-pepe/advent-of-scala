@@ -1,6 +1,5 @@
 package aoc2020
 
-import scala.collection.mutable
 import scala.io.Source
 
 object Day11 extends App {
@@ -50,8 +49,6 @@ object Day11 extends App {
   }
 
   println(findStableConfiguration(LazyList.iterate(seats0)(evolve(neighsP1, 4))))
-
-  val neighCache = mutable.Map[(Int, Int), Set[(Int, Int)]]()
 
   val dirs = (for {
     dx <- -1 to 1
