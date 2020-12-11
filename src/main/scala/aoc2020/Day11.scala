@@ -53,9 +53,6 @@ object Day11 extends App {
 
   val neighCache = mutable.Map[(Int, Int), Set[(Int, Int)]]()
 
-  val maxX = seats0.keys.map(_._1).max
-  val maxY = seats0.keys.map(_._2).max
-
   val dirs = (for {
     dx <- -1 to 1
     dy <- -1 to 1
@@ -69,7 +66,7 @@ object Day11 extends App {
         LazyList.iterate((x, y)) { case (x, y) => (x + dir._1, y + dir._2) }
           .drop(1)
           .dropWhile(p => seats0.contains(p) && seats0(p) == Floor)
-          .takeWhile(p => p._1 >= 0 && p._2 >= 0 && p._1 <= maxX && p._2 <= maxY)
+          .takeWhile(seats0.contains)
           .headOption
       }
       neighCache((x, y)) = neighs
