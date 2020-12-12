@@ -5,8 +5,6 @@ import scala.io.Source
 
 object Day15 extends App {
 
-  val initHP = 200
-
   case class Vec2(x: Int, y: Int) {
     def neighs(): Set[Vec2] = (for {
       dx <- -1 to 1
@@ -28,32 +26,16 @@ object Day15 extends App {
 
     def nextRound(): State = copy(roundNo = roundNo + 1)
 
-    def removeDead(): State = copy(units = units.filter(_.alive()), deadElves = deadElves + units.count(u => u.elf && u.hp <= 0))
+    def removeDead(): State =
+      copy(units = units.filter(_.alive()), deadElves = deadElves + units.filter(_.elf).count(e => !e.alive()))
 
     def unoccupied(square: Vec2): Boolean =
       open.contains(square) && !units.filter(_.alive()).exists(_.pos == square)
 
     def replaceUnit(oldUnit: Unit, newUnit: Unit): State = copy(units = units.map {
-      case `oldUnit` => newUnit
+      case u if u.id == oldUnit.id => newUnit
       case u => u
     })
-
-    def viz(): scala.Unit = {
-      val minX = open.map(_.x).min - 1
-      val maxX = open.map(_.x).max + 1
-      val minY = open.map(_.y).min - 1
-      val maxY = open.map(_.y).max + 1
-      for (y <- minY to maxY) {
-        val unitsOnRow = units.filter(_.pos.y == y).filter(_.alive()).toList.sortBy(_.pos)
-        for (x <- minX to maxX) {
-          val vec = Vec2(x, y)
-          if (unitsOnRow.exists(_.pos == vec)) print(if (unitsOnRow.filter(_.pos == vec).head.elf) 'E' else 'G')
-          else if (open contains vec) print('.')
-          else print('#')
-        }
-        println("   " + unitsOnRow.map(u => (if (u.elf) 'E' else 'G') + s"(${u.hp})").mkString(", "))
-      }
-    }
 
     def withElfAp(ap: Int): State =
       this.copy(units = units.map {
@@ -66,8 +48,8 @@ object Day15 extends App {
     val lines = Source.fromFile("inputs/2018/15.txt").getLines().toList
     val units = lines.zipWithIndex.flatMap {
       case (line, y) => line.zipWithIndex.flatMap {
-        case ('G', x) => Some(Unit(s"G/$x/$y", Vec2(x, y), elf = false, initHP, 3))
-        case ('E', x) => Some(Unit(s"E/$x/$y", Vec2(x, y), elf = true, initHP, 3))
+        case ('G', x) => Some(Unit(s"G/$x/$y", Vec2(x, y), elf = false, 200, 3))
+        case ('E', x) => Some(Unit(s"E/$x/$y", Vec2(x, y), elf = true, 200, 3))
         case _ => None
       }
     }
@@ -116,20 +98,20 @@ object Day15 extends App {
       .minOption
       .map(_._2)
     if (targetLoc.isEmpty) return state
-    val targetUnit = state.units.filter(u => u.pos == targetLoc.get).head
-    state.replaceUnit(targetUnit, targetUnit.copy(hp = targetUnit.hp - me.ap)).removeDead()
+    val him = state.units.filter(u => u.pos == targetLoc.get).head
+    state.replaceUnit(him, him.copy(hp = him.hp - me.ap)).removeDead()
   }
 
   def findBestMove(unit: Unit, state: State, targets: Set[Unit]): Option[Vec2] = {
     val inRange = targets.map(_.pos).flatMap(_.neighs()).filter(state.unoccupied)
-    val candidateMoves = for {
+    val moves = for {
       move <- unit.pos.neighs() if state.unoccupied(move)
-      dist <- shortestDistance(inRange, state)(move)
+      dist <- shortestDistance(move, inRange, state)
     } yield (dist, move)
-    candidateMoves.toList.minOption.map(_._2)
+    moves.toList.minOption.map(_._2)
   }
 
-  def shortestDistance(end: Set[Vec2], state: State)(begin: Vec2): Option[Int] = {
+  def shortestDistance(begin: Vec2, end: Set[Vec2], state: State): Option[Int] = {
     if (end.isEmpty) return None
     val visited = mutable.Set[Vec2]()
     val q = mutable.Queue[(Int, Vec2)]()
@@ -148,9 +130,8 @@ object Day15 extends App {
     None
   }
 
-  def game(stopIfElfDies: Boolean)(state: State): State = {
+  def game(stopIfElfDies: Boolean)(state: State): State =
     LazyList.iterate(state)(round(stopIfElfDies)).dropWhile(s => !s.ended).head
-  }
 
   def outcome(state: State): Int = (state.roundNo - 1) * state.units.toList.map(_.hp).sum
 
