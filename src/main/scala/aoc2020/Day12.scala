@@ -27,14 +27,14 @@ object Day12 extends App {
     }, times - 1)
   }
 
-  def forward(x: Int, y: Int, face: Char, amt: Int): (Int, Int) = face match {
-    case 'N' => (x, y + amt)
-    case 'E' => (x + amt, y)
-    case 'S' => (x, y - amt)
-    case 'W' => (x - amt, y)
+  def forward(face: Char, x: Int, y: Int, amt: Int): (Char, Int, Int) = face match {
+    case 'N' => (face, x, y + amt)
+    case 'E' => (face, x + amt, y)
+    case 'S' => (face, x, y - amt)
+    case 'W' => (face, x - amt, y)
   }
 
-  def ship(ship: (Char, Int, Int))(s: String): (Char, Int, Int) = {
+  def ship(ship: (Char, Int, Int), s: String): (Char, Int, Int) = {
     val (face, x, y) = ship
     val (cmd, amt) = (s.head, s.tail.toInt)
     cmd match {
@@ -44,13 +44,11 @@ object Day12 extends App {
       case 'W' => (face, x - amt, y)
       case 'L' => (left(face, amt / 90), x, y)
       case 'R' => (right(face, amt / 90), x, y)
-      case 'F' =>
-        val f = forward(x, y, face, amt)
-        (face, f._1, f._2)
+      case 'F' => forward(face, x, y, amt)
     }
   }
 
-  val shipP1 = input.foldLeft(('E', 0, 0)) { case (acc, s) => ship(acc)(s) }
+  val shipP1 = input.foldLeft(('E', 0, 0))(ship)
 
   println(shipP1._2.abs + shipP1._3.abs)
 
@@ -63,7 +61,7 @@ object Day12 extends App {
     else rotateL(-y, x, times - 1)
   }
 
-  def waypoint(param: (Int, Int, Int, Int))(s: String): (Int, Int, Int, Int) = {
+  def waypoint(param: (Int, Int, Int, Int), s: String): (Int, Int, Int, Int) = {
     val (shipX, shipY, wpX, wpY) = param
     val (cmd, amt) = (s.head, s.tail.toInt)
     cmd match {
@@ -77,12 +75,11 @@ object Day12 extends App {
       case 'R' =>
         val wp = rotateR(wpX, wpY, amt / 90)
         (shipX, shipY, wp._1, wp._2)
-      case 'F' =>
-        (shipX + wpX * amt, shipY + wpY * amt, wpX, wpY)
+      case 'F' => (shipX + wpX * amt, shipY + wpY * amt, wpX, wpY)
     }
   }
 
-  val shipP2 = input.foldLeft((0, 0, 10, 1)) { case (acc, s) => waypoint(acc)(s) }
+  val shipP2 = input.foldLeft((0, 0, 10, 1))(waypoint)
 
   println(shipP2._1.abs + shipP2._2.abs)
 }
