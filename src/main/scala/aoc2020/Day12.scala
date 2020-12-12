@@ -28,9 +28,9 @@ object Day12 extends App {
   }
 
   def forward(x: Int, y: Int, face: Char, amt: Int): (Int, Int) = face match {
-    case 'N' => (x, y - amt)
+    case 'N' => (x, y + amt)
     case 'E' => (x + amt, y)
-    case 'S' => (x, y + amt)
+    case 'S' => (x, y - amt)
     case 'W' => (x - amt, y)
   }
 
@@ -38,8 +38,8 @@ object Day12 extends App {
     val (face, x, y) = ship
     val (cmd, amt) = (s.head, s.tail.toInt)
     cmd match {
-      case 'N' => (face, x, y - amt)
-      case 'S' => (face, x, y + amt)
+      case 'N' => (face, x, y + amt)
+      case 'S' => (face, x, y - amt)
       case 'E' => (face, x + amt, y)
       case 'W' => (face, x - amt, y)
       case 'L' => (left(face, amt / 90), x, y)
@@ -67,22 +67,22 @@ object Day12 extends App {
     val (shipX, shipY, wpX, wpY) = param
     val (cmd, amt) = (s.head, s.tail.toInt)
     cmd match {
-      case 'N' => (shipX, shipY, wpX, wpY - amt)
-      case 'S' => (shipX, shipY, wpX, wpY + amt)
+      case 'N' => (shipX, shipY, wpX, wpY + amt)
+      case 'S' => (shipX, shipY, wpX, wpY - amt)
       case 'E' => (shipX, shipY, wpX + amt, wpY)
       case 'W' => (shipX, shipY, wpX - amt, wpY)
       case 'L' =>
-        val wp = rotateR(wpX, wpY, amt / 90) // dafuq
+        val wp = rotateL(wpX, wpY, amt / 90)
         (shipX, shipY, wp._1, wp._2)
       case 'R' =>
-        val wp = rotateL(wpX, wpY, amt / 90) // dafuq
+        val wp = rotateR(wpX, wpY, amt / 90)
         (shipX, shipY, wp._1, wp._2)
       case 'F' =>
         (shipX + wpX * amt, shipY + wpY * amt, wpX, wpY)
     }
   }
 
-  val shipP2 = input.foldLeft((0, 0, 10, -1)) { case (acc, s) => waypoint(acc)(s) }
+  val shipP2 = input.foldLeft((0, 0, 10, 1)) { case (acc, s) => waypoint(acc)(s) }
 
   println(shipP2._1.abs + shipP2._2.abs)
 }
