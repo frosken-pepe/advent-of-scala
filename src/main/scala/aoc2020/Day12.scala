@@ -36,17 +36,18 @@ object Day12 extends App {
 
   def ship(ship: (Char, Int, Int))(s: String): (Char, Int, Int) = {
     val (face, x, y) = ship
-    if (s.head == 'N') (face, x, y - s.tail.toInt)
-    else if (s.head == 'S') (face, x, y + s.tail.toInt)
-    else if (s.head == 'E') (face, x + s.tail.toInt, y)
-    else if (s.head == 'W') (face, x - s.tail.toInt, y)
-    else if (s.head == 'L') (left(face, s.tail.toInt / 90), x, y)
-    else if (s.head == 'R') (right(face, s.tail.toInt / 90), x, y)
-    else if (s.head == 'F') {
-      val f = forward(x, y, face, s.tail.toInt)
-      (face, f._1, f._2)
+    val (cmd, amt) = (s.head, s.tail.toInt)
+    cmd match {
+      case 'N' => (face, x, y - amt)
+      case 'S' => (face, x, y + amt)
+      case 'E' => (face, x + amt, y)
+      case 'W' => (face, x - amt, y)
+      case 'L' => (left(face, amt / 90), x, y)
+      case 'R' => (right(face, amt / 90), x, y)
+      case 'F' =>
+        val f = forward(x, y, face, amt)
+        (face, f._1, f._2)
     }
-    else throw new IllegalArgumentException(s"??? $s")
   }
 
   val shipP1 = input.foldLeft(('E', 0, 0)) { case (acc, s) => ship(acc)(s) }
@@ -62,26 +63,26 @@ object Day12 extends App {
     else rotateL(-y, x, times - 1)
   }
 
-  def waypoint(param: (Int,Int,Int,Int))(s: String): (Int, Int, Int, Int) = {
+  def waypoint(param: (Int, Int, Int, Int))(s: String): (Int, Int, Int, Int) = {
     val (shipX, shipY, wpX, wpY) = param
-    if (s.head == 'N') (shipX, shipY, wpX, wpY - s.tail.toInt)
-    else if (s.head == 'S') (shipX, shipY, wpX, wpY + s.tail.toInt)
-    else if (s.head == 'E') (shipX, shipY, wpX + s.tail.toInt, wpY)
-    else if (s.head == 'W') (shipX, shipY, wpX - s.tail.toInt, wpY)
-    else if (s.head == 'L') {
-      val wp = rotateR(wpX, wpY, s.tail.toInt / 90) // dafuq
-      (shipX, shipY, wp._1, wp._2)
-    } else if (s.head == 'R' && s.tail.toInt % 90 == 0) {
-      val wp = rotateL(wpX, wpY, s.tail.toInt / 90) // dafuq
-      (shipX, shipY, wp._1, wp._2)
-    } else if (s.head == 'F') {
-      val amt = s.tail.toInt
-      (shipX + wpX * amt, shipY + wpY * amt, wpX, wpY)
+    val (cmd, amt) = (s.head, s.tail.toInt)
+    cmd match {
+      case 'N' => (shipX, shipY, wpX, wpY - amt)
+      case 'S' => (shipX, shipY, wpX, wpY + amt)
+      case 'E' => (shipX, shipY, wpX + amt, wpY)
+      case 'W' => (shipX, shipY, wpX - amt, wpY)
+      case 'L' =>
+        val wp = rotateR(wpX, wpY, amt / 90) // dafuq
+        (shipX, shipY, wp._1, wp._2)
+      case 'R' =>
+        val wp = rotateL(wpX, wpY, amt / 90) // dafuq
+        (shipX, shipY, wp._1, wp._2)
+      case 'F' =>
+        (shipX + wpX * amt, shipY + wpY * amt, wpX, wpY)
     }
-    else throw new IllegalArgumentException(s"??? $s")
   }
 
-  val shipP2 = input.foldLeft((0, 0, 10, -1)) { case (acc, s) => waypoint(acc)(s)}
+  val shipP2 = input.foldLeft((0, 0, 10, -1)) { case (acc, s) => waypoint(acc)(s) }
 
   println(shipP2._1.abs + shipP2._2.abs)
 }
