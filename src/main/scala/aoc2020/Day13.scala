@@ -7,24 +7,33 @@ object Day13 extends App {
   val input = Source.fromFile("inputs/2020/13.txt").getLines().toList
 
   val timestamp = input.head.toInt
-  val busses = input.tail.head.split(",").filter(_ != "x").map(_.toInt).toList
+
+  val busses = input.tail.head.split(",")
+    .toList
+    .zipWithIndex
+    .filter(_._1 != "x")
+    .map { case (k, v) => k.toInt -> v }
+
+  val busIds = busses.map(_._1)
 
   println(
-    LazyList.iterate(timestamp)(_ + 1).filter(ts => busses.exists(b => ts % b == 0))
-      .map(ts => (ts - timestamp) * busses.filter(b => ts % b == 0).head)
+    LazyList.iterate(timestamp)(_ + 1)
+      .map(ts => (ts, busIds.filter(b => ts % b == 0)))
+      .dropWhile(_._2.isEmpty)
+      .map { case (ts, id :: Nil) => (ts - timestamp) * id }
       .head
   )
 
-  val bussesP2 = input.tail.head.split(",").zipWithIndex
-    .filter(_._1 != "x").map {
-    case (k, v) => k.toInt -> v
-  }.toList
+  // solve system of congruences x % ms(i) = as(i)
+  def chinaChinaChina(as: List[Int], ms: List[Int]): BigInt = {
+    assert(ms.forall(_ > 0))
+    // just make sure we have the remainders a(i) in [0..m(i)-1]
+    val a = as.zip(ms).map { case (a, m) => ((a % m) + m) % m }
+    val M = ms.map(m => BigInt(m)).product
+    val x = ms.map(M / _)
+    val b = ms.zip(x).map { case (m, x) => x modInverse m }
+    a.zip(b).zip(x).map { case ((a, b), x) => a * b * x }.sum mod M
+  }
 
-  val m = bussesP2.map(_._1).map(_.toLong)
-  val a = bussesP2.map(t => (t._1 - t._2) % t._1)
-  val M = m.product
-  val b = m.map(mm => BigInt(M / mm).modInverse(mm))
-  val t = a.zip(b).zip(m).map { case ((a, b), m) => a * b * (M / m) }.sum % M
-
-  println(t)
+  println(chinaChinaChina(busses.map(t => -t._2), busses.map(_._1)))
 }
