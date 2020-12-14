@@ -11,10 +11,8 @@ object Day14 extends App {
 
   case class State(mask: String, memory: Map[Long, Long]) {
 
-    @tailrec private def padLeft(s: String, len: Int, ch: Char): String = {
-      if (s.length < len) padLeft(ch + s, len, ch)
-      else s
-    }
+    private def padLeft(s: String, len: Int, ch: Char): String =
+      (0 until len - s.length).map(_ => ch).mkString + s
 
     def maskP1(value: Long): Long = {
       BigInt(
@@ -25,22 +23,19 @@ object Day14 extends App {
         }.mkString, 2).longValue
     }
 
-    def maskP2(addr: Long): Set[Long] = {
-      val masked = padLeft(addr.toBinaryString, 36, '0').zip(mask).map {
+    def maskP2(addr: Long): Set[Long] =
+      floatingBit(padLeft(addr.toBinaryString, 36, '0').zip(mask).map {
         case (_, '1') => '1'
         case (v, '0') => v
         case (_, 'X') => 'X'
-      }.mkString.toList
-      floatingBit(masked, List(Nil)).map(f => BigInt.apply(f.mkString, 2)).map(_.longValue).toSet
-    }
+      }).map(BigInt(_, 2).longValue).toSet
 
-    @tailrec private def floatingBit(mask: List[Char], acc: List[List[Char]]): List[List[Char]] = {
-      if (mask.isEmpty) acc.map(_.reverse)
+    @tailrec private def floatingBit(mask: Seq[Char], acc: List[List[Char]] = List(Nil)): List[String] = {
+      if (mask.isEmpty) acc.map(_.reverse).map(_.mkString)
       else floatingBit(mask.tail,
         mask.head match {
-          case '0' => acc.map(l => '0' :: l)
-          case '1' => acc.map(l => '1' :: l)
           case 'X' => acc.flatMap(l => List('0' :: l, '1' :: l))
+          case x => acc.map(x :: _)
         })
     }
 
