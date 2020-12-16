@@ -1,6 +1,6 @@
 package aoc2018
 
-import scala.collection.mutable
+import scala.annotation.tailrec
 import scala.io.Source
 
 object Day15 extends App {
@@ -112,22 +112,21 @@ object Day15 extends App {
   }
 
   def shortestDistance(begin: Vec2, end: Set[Vec2], state: State): Option[Int] = {
-    if (end.isEmpty) return None
-    val visited = mutable.Set[Vec2]()
-    val q = mutable.Queue[(Int, Vec2)]()
-    visited += begin
-    q.enqueue((0, begin))
-    while (q.nonEmpty) {
-      val (dist, cur) = q.dequeue()
-      if (end.contains(cur)) return Some(dist)
-      for (n <- cur.neighs().filter(state.unoccupied)) {
-        if (!visited.contains(n)) {
-          q.enqueue((dist + 1, n))
-          visited += n
-        }
+    @tailrec def shortestDistanceTailrec(prev: Set[Vec2], visited: Set[Vec2], dist: Int): Option[Int] = {
+      if (prev.isEmpty) None
+      else if ((end intersect prev).nonEmpty) Some(dist)
+      else {
+        val next = for {
+          p <- prev
+          neigh <- p.neighs()
+          if state.unoccupied(neigh)
+          if !visited.contains(neigh)
+        } yield neigh
+        shortestDistanceTailrec(next, visited ++ next, dist + 1)
       }
     }
-    None
+
+    shortestDistanceTailrec(Set(begin), Set(), 0)
   }
 
   def game(stopIfElfDies: Boolean)(state: State): State =
