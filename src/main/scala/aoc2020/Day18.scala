@@ -1,6 +1,6 @@
 package aoc2020
 
-import scala.collection.mutable
+import scala.collection.immutable.Queue
 import scala.io.Source
 
 object Day18 extends App {
@@ -9,114 +9,115 @@ object Day18 extends App {
 
   type Parser[A] = String => Option[(A, String)]
 
-  sealed trait Expr {
-    def eval: Long
+  sealed trait Token {
+    def isOperator: Boolean
   }
 
-  case class Number(no: Int) extends Expr {
-    override def eval: Long = no
+  def evalRPN(precedence: Token => Boolean)(todo: List[Token], stack: List[Long] = Nil): Long = {
+    if (todo.isEmpty) stack.head
+    else {
+      todo.head match {
+        case Number(no) =>
+          evalRPN(precedence)(todo.tail, no :: stack)
+        case Operator('+') =>
+          evalRPN(precedence)(todo.tail, (stack.head + stack.tail.head) :: stack.drop(2))
+        case Operator('*') =>
+          evalRPN(precedence)(todo.tail, (stack.head * stack.tail.head) :: stack.drop(2))
+        case i@InfixExpression(_) =>
+          evalRPN(precedence)(todo.tail, evalRPN(precedence)(i.toRPN(precedence)(), Nil) :: stack)
+        case p@ParenthesizedExpression(_) =>
+          evalRPN(precedence)(todo.tail, evalRPN(precedence)(p.subExpr.toRPN(precedence)()) :: stack)
+      }
+    }
   }
 
-  case class Plus(left: Expr, right: Expr) extends Expr {
-    override def eval: Long = left.eval + right.eval
+  case class Number(no: Int) extends Token {
+    override def isOperator: Boolean = false
+
+    override def toString: String = no.toString
   }
 
-  case class Times(left: Expr, right: Expr) extends Expr {
-    override def eval: Long = left.eval * right.eval
+  case class Operator(to: Char) extends Token {
+    override def isOperator: Boolean = true
+
+    override def toString: String = to.toString
+  }
+
+  case class ParenthesizedExpression(subExpr: InfixExpression) extends Token {
+    override def isOperator: Boolean = false
+
+    override def toString: String = s"($subExpr)"
+  }
+
+
+  case class InfixExpression(tokens: List[Token]) extends Token {
+    def toRPN(precedence: Token => Boolean)(todo: List[Token] = tokens, ops: List[Token] = Nil, out: Queue[Token] = Queue()): List[Token] = {
+      if (todo.isEmpty && ops.nonEmpty) toRPN(precedence)(Nil, ops.tail, out.enqueue(ops.head))
+      else if (todo.isEmpty) out.toList
+      else todo.head match {
+        case n@Number(_) => toRPN(precedence)(todo.tail, ops, out.enqueue(n))
+        case p@ParenthesizedExpression(_) => toRPN(precedence)(todo.tail, ops, out.enqueue(p))
+        case i@InfixExpression(_) => toRPN(precedence)(todo.tail, ops, out.enqueue(i))
+        case Operator(_) if ops.nonEmpty && ops.head.isOperator && precedence(ops.head) =>
+          toRPN(precedence)(todo, ops.tail, out.enqueue(ops.head))
+        case Operator(_) => toRPN(precedence)(todo.tail, todo.head :: ops, out)
+      }
+    }
+
+    override def isOperator: Boolean = false
+
+    override def toString: String = s"${tokens.mkString(", ")}"
   }
 
   def char(ch: Char)(s: String): Option[(Char, String)] = {
-    if (s.nonEmpty && s.head == ch) Some(ch, s.tail)
+    val t = s.dropWhile(_ == ' ')
+    if (t.nonEmpty && t.head == ch) Some(ch, t.tail)
     else None
   }
 
   def number(s: String): Option[(Number, String)] = {
-    if (s.nonEmpty && s.head.isDigit) {
-      val (num, rest) = s.span(_.isDigit)
+    val t = s.dropWhile(_ == ' ')
+    if (t.nonEmpty && t.head.isDigit) {
+      val (num, rest) = t.span(_.isDigit)
       Some((Number(num.toInt), rest))
     } else None
   }
 
-  def parExpr(s: String): Option[(Expr, String)] = {
+  def parExpr(s: String): Option[(ParenthesizedExpression, String)] = {
     for {
       (_, r0) <- char('(')(s)
-      (exp, r1) <- expr(r0)
+      (exp, r1) <- seq(r0)
       (_, r2) <- char(')')(r1)
-    } yield (exp, r2)
+    } yield (ParenthesizedExpression(exp), r2)
   }
 
   def either[A](a: Parser[A], b: Parser[A]): Parser[A] = { s =>
     a(s).orElse(b(s))
   }
 
-  def term(s: String): Option[(Expr, String)] = {
+  def term(s: String): Option[(Token, String)] = {
     either(number, parExpr)(s)
   }
 
-  def expr(s: String): Option[(Expr, String)] = {
+  def seq(s: String): Option[(InfixExpression, String)] = {
     for {
-      (left, r0) <- term(s)
+      (first, r0) <- term(s)
       (ch, r1) <- either(char('+'), char('*'))(r0)
-      (right, r2) <- either(expr, term)(r1)
-    } yield if (ch == '+') (Plus(left, right), r2) else (Times(left, right), r2)
-  }
-
-  def reverseExpression(expr: String): String = {
-    val tokens = expr.replace("(", "( ").replace(")", " )").split(" ")
-    tokens.reverse.mkString("").map {
-      case '(' => ')'
-      case ')' => '('
-      case x => x
+      (rest, r2) <- either(seq, term)(r1)
+    } yield rest match {
+      case n@Number(_) => (InfixExpression(List(first, Operator(ch), n)), r2)
+      case p@ParenthesizedExpression(_) => (InfixExpression(List(first, Operator(ch), p)), r2)
+      case InfixExpression(tokens) => (InfixExpression(List(first, Operator(ch)) ++ tokens), r2)
     }
   }
 
-  def evalExpression(e: String): Long =
-    expr(reverseExpression(e)).map(_._1.eval).getOrElse(throw new IllegalStateException(s"for $e"))
-
-  println(input.map(evalExpression).sum)
-
-  def shuntingYard(s: String): List[String] = {
-
-    def readToken(rest: String): (String, String) = {
-      if (rest.head.isDigit) rest.span(_.isDigit)
-      else (rest.head.toString, rest.tail)
-    }
-
-    var rest = s.replace(" ", "")
-    val output = mutable.Queue[String]()
-    val ops = mutable.Stack[String]()
-
-    while (rest.nonEmpty) {
-      val (token, newRest) = readToken(rest)
-      rest = newRest
-      if (token.head.isDigit) {
-        output.enqueue(token)
-      } else if (token == "+" || token == "*") {
-        while (ops.nonEmpty && (ops.top == "+" && token == "*") && (ops.top != "(")) output.enqueue(ops.pop())
-        ops.push(token)
-      } else if (token == "(") {
-        ops.push(token)
-      } else if (token == ")") {
-        while (ops.nonEmpty && ops.top != "(") {
-          output.enqueue(ops.pop)
-        }
-        if (ops.nonEmpty && ops.top == "(") ops.pop
-      }
-    }
-    while (ops.nonEmpty) output.enqueue(ops.pop)
-    output.toList
+  def sumExpressions(precedence: Token => Boolean): Long = {
+    input.map(seq).map(_.get).map(z => evalRPN(precedence)(z._1.toRPN(precedence)())).sum
   }
 
-  def evalRPN(rpn: List[String]): Long = {
-    val tokens = mutable.Stack[Long]()
-    for (token <- rpn) {
-      if (token.head.isDigit) tokens.push(token.toLong)
-      else if (token == "*") tokens.push(tokens.pop * tokens.pop)
-      else if (token == "+") tokens.push(tokens.pop + tokens.pop)
-      else throw new IllegalStateException(s"token $token")
-    }
-    tokens.top
-  }
-
-  println(input.map(shuntingYard).map(evalRPN).sum)
+  println(sumExpressions(_ => true))
+  println(sumExpressions {
+    case Operator('+') => true
+    case _ => false
+  })
 }
