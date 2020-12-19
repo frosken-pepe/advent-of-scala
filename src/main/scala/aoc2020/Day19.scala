@@ -53,39 +53,45 @@ object Day19 extends App {
 
   println((possibleMessages(rules, 0) intersect messages).size)
 
-  val maxReps = 10000
+  val messageSubstrings = for {
+    message <- messages
+    startIdx <- 0 until message.length
+    endIdx <- startIdx to message.length
+  } yield message.substring(startIdx, endIdx)
 
-  val rule42 = possibleMessages(rules, 42).filter(_.length <= maxMessageLen).filter(r => messages.exists(_.contains(r)))
-  val rule31 = possibleMessages(rules, 31).filter(_.length <= maxMessageLen).filter(r => messages.exists(_.contains(r)))
+  val rule42 = possibleMessages(rules, 42).filter(_.length <= maxMessageLen)
 
-  def genRule8(acc: Set[String] = Set()): Set[String] = {
-    val generated = rule42.flatMap(r42 => (if (acc.isEmpty) Set("") else acc).flatMap { a =>
-      if (a.length + r42.length <= maxMessageLen) {
-        val cd = a + r42
-        if (messages.exists(_.contains(cd))) Some(cd) else None
-      } else None
-    }) -- acc
-    println(s"generated ${generated.size} new rule 8")
-    if (generated.isEmpty) acc else acc ++ genRule8(generated)
+  val rule31 = possibleMessages(rules, 31).filter(_.length <= maxMessageLen)
+
+  @tailrec def genRule8(prev: Set[String], seen: Set[String] = Set()): Set[String] = {
+    val newRules: Set[String] = (for {
+      r42 <- rule42
+      a <- prev
+      if a.length + r42.length <= maxMessageLen
+      cd = a + r42
+      if !seen.contains(cd)
+      if messageSubstrings.contains(cd)
+    } yield cd)
+    if (newRules.isEmpty) seen else genRule8(newRules, seen ++ newRules)
   }
 
-  def genRule11(acc: Set[String] = Set()): Set[String] = {
-    val generated =
-      rule31.flatMap(r31 => rule42.flatMap(r42 => (if (acc.isEmpty) Set("") else acc).flatMap { a =>
-        if (r42.length + a.length + r31.length <= maxMessageLen) {
-          val cd = r42 + a + r31
-          if (messages.exists(_.contains(cd))) Some(cd) else None
-        } else None
-      })) -- acc
-    println(s"generated ${generated.size} new rule 11")
-    if (generated.isEmpty) acc else acc ++ genRule11( generated)
+  @tailrec def genRule11(prev: Set[String], seen: Set[String] = Set()): Set[String] = {
+    val newRules: Set[String] = (for {
+      r42 <- rule42
+      a <- prev
+      if messageSubstrings.contains(r42 + a)
+      r31 <- rule31
+      if r42.length + a.length + r31.length <= maxMessageLen
+      cd = r42 + a + r31
+      if !seen.contains(cd)
+      if messageSubstrings.contains(cd)
+    } yield cd)
+    if (newRules.isEmpty) seen else genRule11(newRules, seen ++ newRules)
   }
 
-  val rule8 = genRule8()
-  println("calculated rules 8")
+  val rule8 = genRule8(Set(""))
 
-  val rule11 = genRule11()
-  println("calculated rules 11")
+  val rule11 = genRule11(Set(""))
 
   def rule0(s: String): Boolean = {
     (for {
