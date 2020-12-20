@@ -4,15 +4,10 @@ import scala.io.Source
 
 object Day20 extends App {
 
-  case class Tile(id: Long, pixels: Set[(Int, Int)]) {
-
-    val maxX: Int = pixels.map(_._1).max
-    val maxY: Int = pixels.map(_._2).max
+  case class Tile(id: Long, pixels: Set[(Int, Int)], maxX: Int, maxY: Int) {
 
     def rotate(): Tile = {
-      copy(pixels = pixels.map {
-        case (x, y) => (maxY - y, x)
-      })
+      copy(pixels = pixels.map { case (x, y) => (maxY - y, x) }, maxX = this.maxY, maxY = this.maxX)
     }
 
     def rotateN(n: Int): Tile = {
@@ -40,7 +35,9 @@ object Day20 extends App {
       for {
         (line, y) <- strings.zipWithIndex.toSet
         (ch, x) <- line.zipWithIndex if ch == '#'
-      } yield (x, y)
+      } yield (x, y),
+      maxX = strings.head.length - 1,
+      maxY = strings.length - 1
     )
 
     val seaMonster: Tile = Tile(666, List(
@@ -86,7 +83,7 @@ object Day20 extends App {
   val cols = rows
 
   def roughness(tiles: Map[(Int, Int), Tile]): Int = {
-    val tile = Tile(-1, assembleImage(tiles))
+    val tile = assembleImage(tiles)
     val hereBeDragons = for {
       monster <- Tile.seaMonster.variations
       monsterPixel <- overlappingPixels(monster, tile)
@@ -94,7 +91,7 @@ object Day20 extends App {
     tile.pixels.count(px => !hereBeDragons.contains(px))
   }
 
-  private def assembleImage(tiles: Map[(Int, Int), Tile]): Set[(Int, Int)] = {
+  private def assembleImage(tiles: Map[(Int, Int), Tile]): Tile = {
     val shifted = for {
       row: Int <- (0 until rows).toSet
       col <- 0 until cols
@@ -111,7 +108,9 @@ object Day20 extends App {
         case (x, y) => (x + offsetX, y + offsetY)
       }
     } yield shiftedPixels
-    shifted.flatten
+    val maxX = cols * (tiles(0, 0).maxX - 1) - 1
+    val maxY = rows * (tiles(0, 0).maxY - 1) - 1
+    Tile(-1, shifted.flatten, maxX, maxY)
   }
 
   def overlappingPixels(monster: Tile, tile: Tile): Set[(Int, Int)] = {
