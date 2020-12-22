@@ -1,19 +1,20 @@
 package aoc2020
 
 import scala.collection.immutable.Queue
-import scala.collection.mutable
 import scala.io.Source
 
 object Day22 extends App {
 
   type Deck = Queue[Int]
 
-  case class State(p1: Deck, p2: Deck, end: Boolean, win: Int) {
-    def winner = if (p1.isEmpty) p2 else p1
-
-    def score: Int = winner.reverse.zip(1 to winner.length).map {
-      case (a, b) => a * b
-    }.sum
+  case class State(p1: Deck, p2: Deck, winner: Int, game: Int) {
+    def score: Int = {
+      val player = (p1.length, p2.length) match {
+        case (_, 0) => p1
+        case (0, _) => p2
+      }
+      player.reverse.zip(1 to player.length).map { case (a, b) => a * b }.sum
+    }
   }
 
   val (player1, player2) = {
@@ -23,48 +24,35 @@ object Day22 extends App {
     (Queue[Int]().enqueueAll(player1), Queue[Int]().enqueueAll(player2))
   }
 
-  val cache = mutable.Map[Int, mutable.Set[State]]()
+  def round(state: State, seen: Set[State], maxGame: Int, gameType: Int): (State, Set[State], Int) = {
 
-  def round(state: State, game: Int): State = {
-
-    if (!cache.contains(game)) cache(game) = mutable.Set[State]()
-
-    if (cache(game).contains(state)) {
-      return state.copy(end = true, win = 1)
+    if (seen.contains(state)) {
+      return (state.copy(winner = 1), seen, maxGame)
     }
-
-    cache(game).add(state)
 
     val (hdp1, tlp1) = (state.p1.head, state.p1.tail)
     val (hdp2, tlp2) = (state.p2.head, state.p2.tail)
 
-    val roundWinner = if (hdp1 <= tlp1.length && hdp2 <= tlp2.length) {
-      recursiveCombat(tlp1.take(hdp1), tlp2.take(hdp2), cache.keys.max + 1)
-    } else {
-      if (hdp1 > hdp2) 1 else 2
-    }
+    val roundWinner =
+      if (gameType == 2 && hdp1 <= tlp1.length && hdp2 <= tlp2.length)
+        game(State(tlp1.take(hdp1), tlp2.take(hdp2), 0, maxGame + 1), gameType).winner
+      else if (hdp1 > hdp2) 1
+      else 2
 
-    if (roundWinner == 1)
-      state.copy(tlp1.enqueue(hdp1).enqueue(hdp2), tlp2, tlp2.isEmpty, if (tlp2.isEmpty) 1 else 0)
+    val nextState = if (roundWinner == 1)
+      state.copy(tlp1.enqueue(hdp1).enqueue(hdp2), tlp2, if (tlp2.isEmpty) 1 else 0)
     else
-      state.copy(tlp1, tlp2.enqueue(hdp2).enqueue(hdp1), tlp1.isEmpty, if (tlp1.isEmpty) 2 else 0)
+      state.copy(tlp1, tlp2.enqueue(hdp2).enqueue(hdp1), if (tlp1.isEmpty) 2 else 0)
+
+    (nextState, seen + state, math.max(state.game, maxGame))
   }
 
-  def recursiveCombat(p1: Deck, p2: Deck, game: Int): Int = {
-    val state = State(p1, p2, false, 0)
-    LazyList.iterate(state) { state =>
-      round(state, game)
-    }.dropWhile(s => !s.end).head.win
+  def game(init: State, gameType: Int): State = {
+    LazyList.iterate((init, Set[State](), 0)) {
+      case (state, seen, maxGame) => round(state, seen, maxGame, gameType)
+    }.map(_._1).dropWhile(state => state.winner == 0).head
   }
 
-  val init = State(player1, player2, false, 0)
-
-  var round = 0
-
-  println(LazyList.iterate(init) { state =>
-    println(s"round $round")
-    round += 1
-    round(state, 0)
-  }
-    .dropWhile { state => !state.end }.map(_.score).head)
+  println(game(State(player1, player2, 0, 0), 1).score)
+  println(game(State(player1, player2, 0, 0), 2).score)
 }
