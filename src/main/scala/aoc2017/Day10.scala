@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day10 extends App {
 
@@ -17,7 +18,7 @@ object Day10 extends App {
       State((cur + length + skip) % list.length, skip + 1, newList)
   }
 
-  val input = Source.fromFile("inputs/2017/10.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2017/10.txt"))(_.getLines().next()).get
   val lengths = input.split(",").map(_.toInt).toList
   val h = hash(lengths).list
   println(h.head * h.tail.head)

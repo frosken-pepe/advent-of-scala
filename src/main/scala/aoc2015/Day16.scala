@@ -1,6 +1,7 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day16 extends App {
 
@@ -31,7 +32,7 @@ object Day16 extends App {
     }
   }
 
-  val input = Source.fromFile("inputs/2015/16.txt").getLines().map(Sue.apply).toList
+  val input = Using(Source.fromFile("inputs/2015/16.txt"))(_.getLines().map(Sue.apply).toList).get
 
   def isSueP1(sue: Sue): Boolean = sue.props.forall {
     case (prop, quantity) => quantity == analysis(prop)

@@ -2,6 +2,7 @@ package aoc2016
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day11 extends App {
 
@@ -32,10 +33,10 @@ object Day11 extends App {
     case "nothing relevant" => None
   }
 
-  val input = Source.fromFile("inputs/2016/11.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/11.txt"))(_.getLines()
     .map {
       case floor(a, b) => (english(a) - 1, b.split(", and |, | and ").flatMap(parseItem).toList)
-    }.toList.sortBy(_._1).map(_._2)
+    }.toList.sortBy(_._1).map(_._2)).get
 
   case class State(elevator: Int, floors: List[List[Item]])
 

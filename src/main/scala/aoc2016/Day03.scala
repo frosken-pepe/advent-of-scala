@@ -1,13 +1,14 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day03 extends App {
 
   val line = """(\d+)\W+(\d+)\W+(\d+)""".r.unanchored
 
-  val input = Source.fromFile("inputs/2016/03.txt").getLines()
-    .map { case line(a, b, c) => (a.toInt :: b.toInt :: c.toInt :: Nil) }.toList
+  val input = Using(Source.fromFile("inputs/2016/03.txt"))(_.getLines()
+    .map { case line(a, b, c) => (a.toInt :: b.toInt :: c.toInt :: Nil) }.toList).get
 
   val input2 = (for {
     x <- 0 until (input.size / 3)

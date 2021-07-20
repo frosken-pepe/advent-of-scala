@@ -1,10 +1,11 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day03 extends App {
 
-  val input = Source.fromFile("inputs/2017/03.txt").getLines().next().toInt
+  val input = Using(Source.fromFile("inputs/2017/03.txt"))(_.getLines().next().toInt).get
 
   val directions = LazyList.iterate(0)(_ + 1)
   val lengths = LazyList.iterate(1)(_ + 1).flatMap(x => List(x, x))

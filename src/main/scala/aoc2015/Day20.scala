@@ -1,10 +1,11 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day20 extends App {
 
-  val input = Source.fromFile("inputs/2015/20.txt").getLines().next().toInt
+  val input = Using(Source.fromFile("inputs/2015/20.txt"))(_.getLines().next().toInt).get
 
   def listOfDivisors(num: Int): List[Int] = if (num == 1) List(1) else
     1 :: num :: LazyList.iterate(2)(_ + 1)

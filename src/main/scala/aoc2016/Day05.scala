@@ -3,10 +3,11 @@ package aoc2016
 import aoc2015.Day04.md5
 
 import scala.io.Source
+import scala.util.Using
 
 object Day05 extends App {
 
-  val doorId = Source.fromFile("inputs/2016/05.txt").getLines().next()
+  val doorId = Using(Source.fromFile("inputs/2016/05.txt"))(_.getLines().next()).get
 
   println(
     LazyList.iterate(0)(_ + 1).map(i => md5(doorId + i)).filter(_.startsWith("00000"))

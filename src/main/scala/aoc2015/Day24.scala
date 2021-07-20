@@ -2,10 +2,11 @@ package aoc2015
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day24 extends App {
 
-  val input = Source.fromFile("inputs/2015/24.txt").getLines().map(_.toLong).toList
+  val input = Using(Source.fromFile("inputs/2015/24.txt"))(_.getLines().map(_.toLong).toList).get
 
   def idealSleigh(groups: Int): Long = {
 

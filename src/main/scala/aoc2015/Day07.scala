@@ -2,6 +2,7 @@ package aoc2015
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 import scala.util.matching.Regex
 
 object Day07 extends App {
@@ -76,9 +77,9 @@ object Day07 extends App {
     }
   }
 
-  val input = Source.fromFile("inputs/2015/07.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2015/07.txt"))(_.getLines()
     .map(LineParser.parseLine)
-    .toList
+    .toList).get
 
   def iterate(cxs: List[Connection], z: Map[String, Int]) = cxs.foldLeft(z) {
     case (map, cx) => map.updated(cx.getDest, cx.eval(map))

@@ -2,12 +2,13 @@ package aoc2018
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day13 extends App {
 
   // TODO cleanup
 
-  val input = Source.fromFile("inputs/2018/13.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2018/13.txt"))(_.getLines().toList).get
 
   val carts = (for {
     y <- input.indices
@@ -84,51 +85,52 @@ object Day13 extends App {
 
   def sortCarts(carts: List[Cart]): List[Cart] = carts.sortBy(_.coords.swap)
 
-  def p1() {
+  sealed trait Tick
 
-    @tailrec def moveAll(todo: List[Cart], moved: List[Cart]): Either[(Int, Int), List[Cart]] = {
-      if (todo.isEmpty) Right(moved)
+  case class Crashed(loc: (Int, Int)) extends Tick
+
+  case class Moved(carts: List[Cart]) extends Tick
+
+  {
+    @tailrec def moveAll(todo: List[Cart], moved: List[Cart]): Tick = {
+      if (todo.isEmpty) Moved(moved)
       else {
-        val head = todo.head
-        val newCart = head.move(map)
-        val locs = (todo.tail ++ moved).map(_.coords).toSet
-        if (locs.contains(newCart.x, newCart.y)) Left(newCart.coords)
+        val newCart = todo.head.move(map)
+        val cartLocations = (todo.tail ++ moved).map(_.coords).toSet
+        if (cartLocations.contains(newCart.coords)) Crashed(newCart.coords)
         else moveAll(todo.tail, newCart :: moved)
       }
     }
 
-    @tailrec def firstCollision(carts: List[Cart]): (Int, Int) = {
-      val result = moveAll(sortCarts(carts), Nil)
-      if (result.isLeft) result.left.get
-      else firstCollision(result.right.get)
+    @tailrec def firstCollision(carts: List[Cart]): Crashed = moveAll(sortCarts(carts), Nil) match {
+      case c@Crashed(_) => c
+      case m@Moved(_) => firstCollision(m.carts)
     }
 
-    println(firstCollision(carts))
+    println(firstCollision(carts).loc)
   }
 
-  p1()
-
-  def p2() {
+  {
+    def crashed(newCart: Cart, todo: List[Cart], moved: List[Cart]): List[Cart] = {
+      moveAll(todo.tail.filter(cart => cart.coords != newCart.coords),
+        moved.filter(cart => cart.coords != newCart.coords))
+    }
 
     @tailrec def moveAll(todo: List[Cart], moved: List[Cart]): List[Cart] = {
       if (todo.isEmpty) moved
       else {
-        val head = todo.head
-        val newCart = head.move(map)
-        val locs = (todo.tail ++ moved).map(_.coords).toSet
-        if (locs.contains(newCart.coords)) moveAll(todo.tail.filter(cart => cart.coords != newCart.coords),
-          moved.filter(cart => cart.coords != newCart.coords))
+        val newCart = todo.head.move(map)
+        val cartLocations = (todo.tail ++ moved).map(_.coords).toSet
+        if (cartLocations.contains(newCart.coords)) crashed(newCart, todo, moved)
         else moveAll(todo.tail, newCart :: moved)
       }
     }
 
     @tailrec def lastRemaining(carts: List[Cart]): (Int, Int) = {
-      if (carts.size == 1) (carts.head.coords)
+      if (carts.size == 1) carts.head.coords
       else lastRemaining(moveAll(sortCarts(carts), Nil))
     }
 
     println(lastRemaining(carts))
   }
-
-  p2()
 }

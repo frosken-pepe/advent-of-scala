@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day21 extends App {
 
@@ -66,9 +67,9 @@ object Day21 extends App {
     }
   }
 
-  val lookup = Source.fromFile("inputs/2017/21.txt").getLines()
+  val lookup = Using(Source.fromFile("inputs/2017/21.txt"))(_.getLines()
     .map(EnhancementRule.apply)
-    .flatMap(i => i.matches.map(m => (m, i.output))).toMap
+    .flatMap(i => i.matches.map(m => (m, i.output))).toMap).get
 
   val init = Pattern(IndexedSeq(
     IndexedSeq(false, true, false),

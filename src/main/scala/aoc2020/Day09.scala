@@ -1,12 +1,13 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day09 extends App {
 
   val preambleLength = 25
 
-  val input = Source.fromFile("inputs/2020/09.txt").getLines().map(_.toLong).toList
+  val input = Using(Source.fromFile("inputs/2020/09.txt"))(_.getLines().map(_.toLong).toList).get
 
   def isValid(list: List[Long]): Boolean = {
     val no = list.head

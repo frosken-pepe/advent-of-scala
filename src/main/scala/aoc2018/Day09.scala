@@ -2,11 +2,12 @@ package aoc2018
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day09 extends App {
 
   object Input {
-    private val input = Source.fromFile("inputs/2018/09.txt").getLines().next()
+    private val input = Using(Source.fromFile("inputs/2018/09.txt"))(_.getLines().next()).get
     private val str = """(\d+) players; last marble is worth (\d+) points""".r
     val (players, worth) = input match {
       case str(p, w) => (p.toInt, w.toInt)

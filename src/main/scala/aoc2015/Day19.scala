@@ -1,10 +1,11 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day19 extends App {
 
-  val input = Source.fromFile("inputs/2015/19.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2015/19.txt"))(_.getLines().toList).get
 
   val replacement = """(\w+) => (\w+)""".r
 

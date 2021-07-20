@@ -1,6 +1,7 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day07 extends App {
 
@@ -8,20 +9,19 @@ object Day07 extends App {
 
   val input = {
 
-    def parseList(str: String) : List[(Int, String)] = {
+    def parseList(str: String): List[(Int, String)] = {
       val re = """(\d+) (.*) bags?""".r
       if (str == "no other bags") Nil
-      else str.split(", ").map { case re(num, col) => (num.toInt, col)}.toList
+      else str.split(", ").map { case re(num, col) => (num.toInt, col) }.toList
     }
 
     val re = """(.*) bags contain (.*)\.""".r
-    val lines = Source.fromFile("inputs/2020/07.txt").getLines()
-      .map { case re(outerColor, innerList) => (outerColor, parseList(innerList))}
-
-    lines.toMap
+    Using(Source.fromFile("inputs/2020/07.txt"))(_.getLines()
+      .map { case re(outerColor, innerList) => (outerColor, parseList(innerList)) }
+      .toMap).get
   }
 
-  def distinctOuterColors(inner: String) : Set[String] = {
+  def distinctOuterColors(inner: String): Set[String] = {
     val canContain = input.filter(_._2.exists(_._2 == inner)).keys.toSet
     canContain ++ canContain.flatMap(distinctOuterColors)
   }

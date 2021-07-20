@@ -1,14 +1,15 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day01 extends App {
 
-  val input = Source.fromFile("inputs/2016/01.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2016/01.txt"))(_.getLines().next()
     .split(", ")
     .map(_.toList)
     .map { case ch :: rest => (ch, rest.mkString.toInt)}
-    .toList
+    .toList).get
 
   abstract sealed class Direction {
     def left: Direction

@@ -2,10 +2,11 @@ package aoc2016
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day16 extends App {
 
-  val input = Source.fromFile("inputs/2016/16.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2016/16.txt"))(_.getLines().next()).get
 
   def next(a: String): String = {
     val b = a.reverse.map {

@@ -2,6 +2,7 @@ package aoc2020
 
 import scala.collection.immutable.Queue
 import scala.io.Source
+import scala.util.Using
 
 object Day22 extends App {
 
@@ -18,7 +19,7 @@ object Day22 extends App {
   }
 
   val (player1, player2) = {
-    val lines = Source.fromFile("inputs/2020/22.txt").getLines().toList
+    val lines = Using(Source.fromFile("inputs/2020/22.txt"))(_.getLines().toList).get
     val player1 = lines.drop(1).takeWhile(_ != "").map(_.toInt)
     val player2 = lines.dropWhile(_ != "Player 2:").drop(1).map(_.toInt)
     (Queue[Int]().enqueueAll(player1), Queue[Int]().enqueueAll(player2))

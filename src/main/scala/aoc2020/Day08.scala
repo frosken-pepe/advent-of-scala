@@ -1,6 +1,7 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day08 extends App {
 
@@ -57,9 +58,9 @@ object Day08 extends App {
     }.dropWhile(cpu => !cpu.halt).head
   }
 
-  val program = Source.fromFile("inputs/2020/08.txt").getLines()
+  val program = Using(Source.fromFile("inputs/2020/08.txt"))(_.getLines()
     .map { s => Instruction.apply(s) }
-    .toArray
+    .toArray).get
 
   val cpu = CPU(0, 0, halt = false, Set(), terminatedNormally = false)
 

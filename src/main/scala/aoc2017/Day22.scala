@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day22 extends App {
 
@@ -24,7 +25,7 @@ object Day22 extends App {
     override def next(part: Int): NodeState = Clean
   }
 
-  val source = Source.fromFile("inputs/2017/22.txt").getLines().toList
+  val source = Using(Source.fromFile("inputs/2017/22.txt"))(_.getLines().toList).get
 
   val nodes: Map[(Int, Int), NodeState] = source
     .zipWithIndex

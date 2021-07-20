@@ -1,16 +1,17 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day03 extends App {
 
-  val input = Source.fromFile("inputs/2020/03.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2020/03.txt"))(_.getLines().toList
     .zipWithIndex.flatMap {
     case (str, y) => str.zipWithIndex.flatMap {
       case (ch, x) if ch == '#' => Some((x, y))
       case _ => None
     }
-  }.toSet
+  }.toSet).get
 
   val maxX = input.map(_._1).max
   val maxY = input.map(_._2).max

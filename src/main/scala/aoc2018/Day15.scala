@@ -2,6 +2,7 @@ package aoc2018
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day15 extends App {
 
@@ -26,6 +27,10 @@ object Day15 extends App {
 
     def nextRound(): State = copy(roundNo = roundNo + 1)
 
+    def unitById(unitId: String): Option[Unit] = units.filter(_.id == unitId).find(_.alive())
+
+    def unitsOfType(elf: Boolean): Set[Unit] = units.filter(_.alive()).filter(him => him.elf == elf)
+
     def removeDead(): State =
       copy(units = units.filter(_.alive()), deadElves = deadElves + units.filter(_.elf).count(e => !e.alive()))
 
@@ -45,7 +50,7 @@ object Day15 extends App {
   }
 
   val init: State = {
-    val lines = Source.fromFile("inputs/2018/15.txt").getLines().toList
+    val lines = Using(Source.fromFile("inputs/2018/15.txt"))(_.getLines().toList).get
     val units = lines.zipWithIndex.flatMap {
       case (line, y) => line.zipWithIndex.flatMap {
         case ('G', x) => Some(Unit(s"G/$x/$y", Vec2(x, y), elf = false, 200, 3))
@@ -66,40 +71,52 @@ object Day15 extends App {
 
   def round(stopOnDeadElf: Boolean)(state: State): State = {
     val unitOrder = state.units.toList.sortBy(_.pos).map(_.id)
-    val result = unitOrder.foldLeft(state)(turn).removeDead().nextRound()
+    val result = unitOrder.foldLeft(state) {
+      case (state, unitId) if !state.ended => turn(state, unitId).getOrElse(state)
+      case (state, _) => state
+    }.removeDead().nextRound()
     if (stopOnDeadElf && result.deadElves > 0) result.copy(ended = true)
     else result
   }
 
-  def turn(state: State, unitId: String): State = {
-    if (state.ended) return state
-    val maybeMe = state.units.filter(_.id == unitId).find(_.alive())
-    if (maybeMe.isEmpty) return state
-    val me = maybeMe.get
-    val targets = state.units.filter(_.alive()).filter(him => him.elf != me.elf)
-    if (targets.isEmpty) return state.copy(ended = true)
-    val isInRangeOfTarget = me.pos.neighs().intersect(targets.map(_.pos)).nonEmpty
-    if (isInRangeOfTarget) attack(me, state)
-    else {
-      val move = findBestMove(me, state, targets)
-      if (move.isEmpty) return state
-      val newMe = me.copy(pos = move.get)
-      attack(newMe, state.replaceUnit(me, newMe))
-    }
+  def turn(state: State, unitId: String): Option[State] = for {
+    me <- state.unitById(unitId)
+    updatedState <- updateState(state, me, state.unitsOfType(!me.elf))
+  } yield updatedState
+
+  def updateState(state: State, me: Unit, targets: Set[Unit]): Option[State] = {
+    if (targets.isEmpty) Some(state.copy(ended = true))
+    else if (me.pos.neighs().intersect(targets.map(_.pos)).nonEmpty) attack(me, state)
+    else attackIfPossible(me, moveMe(me, state))
   }
 
-  def attack(me: Unit, state: State): State = {
-    val targetLoc = state.units
-      .filter(_.alive())
-      .filter(him => him.elf != me.elf)
+  def attackIfPossible(me: Unit, moved: Option[State]): Option[State] = (for {
+    moved <- moved
+    attacker <- moved.unitById(me.id)
+    attacked <- attack(attacker, moved)
+  } yield attacked).orElse(moved)
+
+  def moveMe(me: Unit, state: State): Option[State] = {
+    for {
+      move <- findBestMove(me, state, state.unitsOfType(!me.elf))
+      newMe = me.copy(pos = move)
+    } yield state.replaceUnit(me, newMe)
+  }
+
+  def attack(me: Unit, state: State): Option[State] = {
+    val targetId = state
+      .unitsOfType(!me.elf)
       .filter(him => me.pos.neighs().contains(him.pos))
-      .map(u => (u.hp, u.pos))
+      .map(u => (u.hp, u.pos, u.id))
       .toList
       .minOption
-      .map(_._2)
-    if (targetLoc.isEmpty) return state
-    val him = state.units.filter(u => u.pos == targetLoc.get).head
-    state.replaceUnit(him, him.copy(hp = him.hp - me.ap)).removeDead()
+      .map(_._3)
+
+    for {
+      tid <- targetId
+      him <- state.unitById(tid)
+      attacked = state.replaceUnit(him, him.copy(hp = him.hp - me.ap)).removeDead()
+    } yield attacked
   }
 
   def findBestMove(unit: Unit, state: State, targets: Set[Unit]): Option[Vec2] = {
@@ -134,12 +151,15 @@ object Day15 extends App {
 
   def outcome(state: State): Int = (state.roundNo - 1) * state.units.toList.map(_.hp).sum
 
-  println(outcome(game(stopIfElfDies = false)(init)))
+  val p1 = outcome(game(stopIfElfDies = false)(init))
+  println(p1)
+  assert(p1 == 224370)
 
-  println(
-    LazyList.iterate(4)(_ + 1).map(init.withElfAp).map(game(stopIfElfDies = true))
-      .dropWhile(_.deadElves > 0)
-      .map(outcome)
-      .head
-  )
+  val p2 = LazyList.iterate(4)(_ + 1).map(init.withElfAp).map(game(stopIfElfDies = true))
+    .dropWhile(_.deadElves > 0)
+    .map(outcome)
+    .head
+
+  println(p2)
+  assert(p2 == 45539)
 }

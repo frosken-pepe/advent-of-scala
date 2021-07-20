@@ -2,12 +2,13 @@ package aoc2017
 
 import scala.collection.immutable.Queue
 import scala.io.Source
+import scala.util.Using
 
 object Day18 extends App {
 
   import Assembly._
 
-  val input = Source.fromFile("inputs/2017/18.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2017/18.txt"))(_.getLines().toList).get
 
   private def part1(): Long = {
     val cpu = CPU("C64", Map[Reg, Long]() withDefaultValue 0L, 0, 0, halt = false, None, Queue(), 0, 0)

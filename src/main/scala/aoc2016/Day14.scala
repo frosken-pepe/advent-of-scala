@@ -5,10 +5,11 @@ import aoc2015.Day04.md5
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day14 extends App {
 
-  val input = Source.fromFile("inputs/2016/14.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2016/14.txt"))(_.getLines().next()).get
 
   @tailrec def repeatedly(s: String)(n: Int)(fn: String => String): String = {
     if (n == 0) s

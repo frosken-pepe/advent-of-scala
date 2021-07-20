@@ -2,6 +2,7 @@ package aoc2020
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day19 extends App {
 
@@ -9,11 +10,11 @@ object Day19 extends App {
 
   case class SingleCharRule(_id: Int, ch: Char) extends Rule(_id)
 
-  case class DependentRule(_id: Int, deps: List[List[Int]]) extends Rule(_id)
+  case class Choice(_id: Int, deps: List[List[Int]]) extends Rule(_id)
 
   val (rules, messages) = {
 
-    val lines = Source.fromFile("inputs/2020/19.txt").getLines().toList
+    val lines = Using(Source.fromFile("inputs/2020/19.txt"))(_.getLines().toList).get
 
     val singleCharRule = """(\d+): "([a-z])"""".r
     val dependentRule = """(\d+): (.*)""".r
@@ -24,7 +25,7 @@ object Day19 extends App {
 
     val rules: Map[Int, Rule] = lines.takeWhile(_ != "").map {
       case singleCharRule(id, ch) => SingleCharRule(id.toInt, ch.head)
-      case dependentRule(id, rest) => DependentRule(id.toInt, parseIds(rest))
+      case dependentRule(id, rest) => Choice(id.toInt, parseIds(rest))
     }.map(rule => rule.id -> rule).toMap
 
     val messages = lines.drop(rules.size + 1).toSet
@@ -44,7 +45,7 @@ object Day19 extends App {
   def possibleMessages(rules: Map[Int, Rule], ruleId: Int, acc: Set[String] = Set("")): Set[String] = {
     rules(ruleId) match {
       case SingleCharRule(_, ch) => acc.map(_ + ch)
-      case DependentRule(_, deps) => for {
+      case Choice(_, deps) => for {
         group: List[Int] <- deps.toSet
         concat <- prod(group.map(g => possibleMessages(rules, g, acc)))
       } yield concat
@@ -104,4 +105,6 @@ object Day19 extends App {
   }
 
   println(messages.count(rule0))
+
+  // 200, 407
 }

@@ -1,6 +1,7 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day10 extends App {
 
@@ -19,7 +20,7 @@ object Day10 extends App {
 
   case class OutputRef(id: Int) extends Ref
 
-  val input = Source.fromFile("inputs/2016/10.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2016/10.txt"))(_.getLines().toList).get
 
   val valueAssignment = """value (\d+) goes to bot (\d+)""".r
   val initialValueAssignments = input.filter(_.startsWith("value"))

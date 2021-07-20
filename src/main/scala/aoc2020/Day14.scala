@@ -2,12 +2,13 @@ package aoc2020
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day14 extends App {
 
   val emptyMask = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-  val program = Source.fromFile("inputs/2020/14.txt").getLines().toList
+  val program = Using(Source.fromFile("inputs/2020/14.txt"))(_.getLines().toList).get
 
   case class State(mask: String, memory: Map[Long, Long]) {
 

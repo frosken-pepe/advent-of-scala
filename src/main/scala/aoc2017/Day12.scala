@@ -4,16 +4,15 @@ import aoc2017.Day12.expandGroup
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day12 extends App {
 
-  val input = Source.fromFile("inputs/2017/12.txt")
-    .getLines()
+  val input = Using(Source.fromFile("inputs/2017/12.txt"))(_.getLines()
     .map(line => line.split(" <-> ")
       .flatMap(part => part.split(", ").toList.map(_.toInt)).toList)
     .map(_.toSet)
-    .toList
-
+    .toList).get
 
   @tailrec def expandGroup(grp: Set[Int]): Set[Int] = {
     val added = for {

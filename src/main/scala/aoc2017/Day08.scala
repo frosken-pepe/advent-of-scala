@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day08 extends App {
 
@@ -34,9 +35,9 @@ object Day08 extends App {
     }
   }
 
-  val input = Source.fromFile("inputs/2017/08.txt").getLines().map {
+  val input = Using(Source.fromFile("inputs/2017/08.txt"))(_.getLines().map {
     case re(a, b, c, d, e, f) => Instr(a, b, c.toInt, Cond(d, e, f.toInt))
-  }.toList
+  }.toList).get
 
   val memory = input.scanLeft(Map[String, Int]() withDefaultValue 0) {
     case (memory, instr) => instr exec memory

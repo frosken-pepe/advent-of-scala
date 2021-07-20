@@ -1,10 +1,11 @@
 package aoc2018
 
 import scala.io.Source
+import scala.util.Using
 
 object Day11 extends App {
 
-  val serialNo = Source.fromFile("inputs/2018/11.txt").getLines().next().toInt
+  val serialNo = Using(Source.fromFile("inputs/2018/11.txt"))(_.getLines().next().toInt).get
 
   def power(x: Int, y: Int): Int = {
     val rackID = x + 10

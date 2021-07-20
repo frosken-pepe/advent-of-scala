@@ -1,10 +1,11 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day06 extends App {
 
-  val input = Source.fromFile("inputs/2016/06.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2016/06.txt"))(_.getLines().toList).get
 
   val messageLen = input.head.length
   val listOfEmptyMaps = (0 until messageLen).map(_ => Map[Char, Int]()).toList

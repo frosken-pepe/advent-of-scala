@@ -1,10 +1,11 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day11 extends App {
 
-  val input = Source.fromFile("inputs/2015/11.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2015/11.txt"))(_.getLines().next()).get
 
   def hasIncreasingSequence(pass: String): Boolean =
     pass.sliding(3).filter(p => p(2) == p(1) + 1 && p(1) == p(0) + 1).hasNext

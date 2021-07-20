@@ -1,10 +1,11 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day01 extends App {
 
-  val input = Source.fromFile("inputs/2020/01.txt").getLines().map(_.toInt).toList
+  val input = Using(Source.fromFile("inputs/2020/01.txt"))(_.getLines().map(_.toInt).toList).get
 
   val remainders = input.map(2020 - _).zip(input).toMap
 

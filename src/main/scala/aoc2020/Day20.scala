@@ -1,6 +1,7 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day20 extends App {
 
@@ -48,7 +49,7 @@ object Day20 extends App {
   }
 
   val input = {
-    val lines = Source.fromFile("inputs/2020/20.txt").getLines().mkString("\n").split("\n\n").toList
+    val lines = Using(Source.fromFile("inputs/2020/20.txt"))(_.getLines().mkString("\n").split("\n\n").toList).get
 
     def parseTile(tile: List[String]): Tile = {
       val re = """Tile (\d+):""".r

@@ -1,10 +1,11 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day03 extends App {
 
-  val input = Source.fromFile("inputs/2015/03.txt").getLines().toList.head
+  val input = Using(Source.fromFile("inputs/2015/03.txt"))(_.getLines().toList.head).get
 
   val dx = Map('^' -> 0, '<' -> -1, '>' -> 1, 'v' -> 0)
   val dy = Map('^' -> 1, '<' -> 0, '>' -> 0, 'v' -> -1)

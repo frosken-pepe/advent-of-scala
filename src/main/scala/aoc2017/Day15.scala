@@ -1,14 +1,15 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day15 extends App {
 
   val re = """Generator (\w+) starts with (\d+)""".r
 
-  val starts = Source.fromFile("inputs/2017/15.txt").getLines()
+  val starts = Using(Source.fromFile("inputs/2017/15.txt"))(_.getLines()
     .map { case re(id, start) => (id, start.toInt) }
-    .toMap
+    .toMap).get
 
   val factors = Map("A" -> 16807, "B" -> 48271)
 

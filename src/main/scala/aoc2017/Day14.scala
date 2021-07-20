@@ -2,12 +2,13 @@ package aoc2017
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day14 extends App {
 
   import Day10.knotHash
 
-  val input = Source.fromFile("inputs/2017/14.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2017/14.txt"))(_.getLines().next()).get
 
   def bits(hexDigit: Char): Seq[Boolean] = {
     val int = Integer.parseInt("" + hexDigit, 16)

@@ -1,10 +1,11 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day15 extends App {
 
-  val input = Source.fromFile("inputs/2020/15.txt").getLines().next().split(",").map(_.toInt).toList
+  val input = Using(Source.fromFile("inputs/2020/15.txt"))(_.getLines().next().split(",").map(_.toInt).toList).get
 
   LazyList.iterate((-1, 0, Map[Int, Int]())) {
     case (prev, turn, mem) =>

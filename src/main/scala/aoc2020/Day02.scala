@@ -10,13 +10,13 @@ object Day02 extends App {
     def p2: Boolean = pass(from - 1) == char ^ pass(to - 1) == char
   }
 
-  object Input {
-    private val re = """(\d+)-(\d+) ([a-z]): ([a-z]+)""".r
-    val input: List[Policy] = Source.fromFile("inputs/2020/02.txt").getLines()
+  val input: List[Policy] = {
+    val re = """(\d+)-(\d+) ([a-z]): ([a-z]+)""".r
+    Source.fromFile("inputs/2020/02.txt").getLines()
       .map { case re(from, to, char, pass) => Policy(from.toInt, to.toInt, char.head, pass) }
       .toList
   }
 
-  println(Input.input.count(_.p1))
-  println(Input.input.count(_.p2))
+  println(input.count(_.p1))
+  println(input.count(_.p2))
 }

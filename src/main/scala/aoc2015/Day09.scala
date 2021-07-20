@@ -1,6 +1,7 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day09 extends App {
 
@@ -16,11 +17,10 @@ object Day09 extends App {
     }
   }
 
-  val input = Source.fromFile("inputs/2015/09.txt")
-    .getLines()
+  val input = Using(Source.fromFile("inputs/2015/09.txt"))(_.getLines()
     .map(Route.apply)
     .flatMap(route => List(route, route.rev))
-    .toList
+    .toList).get
 
   val places = input.flatMap(route => Set(route.from, route.to)).toSet
 

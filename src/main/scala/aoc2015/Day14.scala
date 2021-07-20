@@ -1,6 +1,7 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day14 extends App {
 
@@ -14,9 +15,9 @@ object Day14 extends App {
     }
   }
 
-  val input = Source.fromFile("inputs/2015/14.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2015/14.txt"))(_.getLines()
     .map(Reindeer.apply)
-    .toList
+    .toList).get
 
   def dist(time: Int)(reindeer: Reindeer): Int = {
     val cycleTime = reindeer.duration + reindeer.rest

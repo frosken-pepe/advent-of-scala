@@ -1,12 +1,13 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day21 extends App {
 
-  val input = Source.fromFile("inputs/2016/21.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/21.txt"))(_.getLines()
     .map(operation)
-    .toList
+    .toList).get
 
   def rotateLeft[A](seq: Seq[A], i: Int): Seq[A] = {
     val size = seq.size

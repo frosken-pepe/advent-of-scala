@@ -2,11 +2,12 @@ package aoc2020
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day16 extends App {
 
   val (specs, yourTicket, nearbyTickets) = {
-    val lines = Source.fromFile("inputs/2020/16.txt").getLines().toList
+    val lines = Using(Source.fromFile("inputs/2020/16.txt"))(_.getLines().toList).get
     val idxNearbyTickets = lines.zipWithIndex.find(_._1 == "nearby tickets:").head._2
     val nearbyTickets = lines.drop(idxNearbyTickets + 1)
       .map(_.split(",").map(_.toInt).toList)

@@ -1,10 +1,11 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day01 extends App {
 
-  val input = Source.fromFile("inputs/2015/01.txt").getLines().toList.head
+  val input = Using(Source.fromFile("inputs/2015/01.txt"))(_.getLines().toList.head).get
 
   val partial: (Int, Char) => Int = {
     case (acc, '(') => acc + 1

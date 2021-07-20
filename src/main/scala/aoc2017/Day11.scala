@@ -1,10 +1,11 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day11 extends App {
 
-  val input = Source.fromFile("inputs/2017/11.txt").getLines().next().split(",").toList
+  val input = Using(Source.fromFile("inputs/2017/11.txt"))(_.getLines().next().split(",").toList).get
 
   case class Pos(x: Int, y: Int) {
     def hexDist: Int = (x.abs + y.abs) / 2

@@ -1,10 +1,11 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day13 extends App {
 
-  val input = Source.fromFile("inputs/2020/13.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2020/13.txt"))(_.getLines().toList).get
 
   val timestamp = input.head.toInt
 

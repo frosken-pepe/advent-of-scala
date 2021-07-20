@@ -2,13 +2,14 @@ package aoc2017
 
 import scala.collection.immutable.Queue
 import scala.io.Source
+import scala.util.Using
 
 object Day23 extends App {
 
   import aoc2017.Assembly._
 
-  val program = Source.fromFile("inputs/2017/23.txt").getLines()
-    .toList.map(Instruction.apply(1)).toArray
+  val program = Using(Source.fromFile("inputs/2017/23.txt"))(_.getLines()
+    .toList.map(Instruction.apply(1)).toArray).get
 
   val run: CPU => CPU = runToHalt(program)
 

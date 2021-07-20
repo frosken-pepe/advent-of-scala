@@ -1,10 +1,11 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day25 extends App {
 
-  val input = Source.fromFile("inputs/2020/25.txt").getLines().map(_.toLong).toList
+  val input = Using(Source.fromFile("inputs/2020/25.txt"))(_.getLines().map(_.toLong).toList).get
 
   val m = 20201227L
 

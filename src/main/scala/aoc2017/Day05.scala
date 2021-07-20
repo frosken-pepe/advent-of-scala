@@ -1,11 +1,11 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day05 extends App {
 
-  val input = Source.fromFile("inputs/2017/05.txt")
-    .getLines().map(_.toInt).zipWithIndex.map(p => p._2 -> p._1).toMap
+  val input = Using(Source.fromFile("inputs/2017/05.txt"))(_.getLines().map(_.toInt).zipWithIndex.map(p => p._2 -> p._1).toMap).get
 
   def countSteps(update: Int => Int) = LazyList.unfold((0, input)) {
     case (idx, map) if idx >= 0 && idx < map.size =>

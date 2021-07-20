@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day07 extends App {
 
@@ -8,11 +9,10 @@ object Day07 extends App {
 
   val program = """(\w+) \((\d+)\)( -> )?(.*?)""".r
 
-  val input = Source.fromFile("inputs/2017/07.txt")
-    .getLines()
-    .map { case program(name, weight, _, rest) => Program(name, weight.toInt, if (!rest.isEmpty) rest.split(", ").toSet else Set()) }
+  val input = Using(Source.fromFile("inputs/2017/07.txt"))(_.getLines()
+    .map { case program(name, weight, _, rest) => Program(name, weight.toInt, if (rest.nonEmpty) rest.split(", ").toSet else Set()) }
     .map(p => (p.name, p))
-    .toMap
+    .toMap).get
 
   val parents = input.values.foldLeft(Map[String, String]()) {
     case (acc, item) => item.children.foldLeft(acc) {

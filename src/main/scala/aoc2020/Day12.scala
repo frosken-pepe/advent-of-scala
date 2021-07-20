@@ -2,10 +2,11 @@ package aoc2020
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day12 extends App {
 
-  val input = Source.fromFile("inputs/2020/12.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2020/12.txt"))(_.getLines().toList).get
 
   @tailrec def left(dir: Char, times: Int): Char = {
     if (times == 0) dir

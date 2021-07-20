@@ -1,13 +1,14 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day21 extends App {
 
-  val input = Source.fromFile("inputs/2015/21.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2015/21.txt"))(_.getLines()
     .map(line => line.split(": "))
     .map(arr => arr(0) -> arr(1).toInt)
-    .toMap
+    .toMap).get
 
   case class Stats(hp: Int, dmg: Int, armor: Int)
 

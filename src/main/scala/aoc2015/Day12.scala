@@ -1,11 +1,13 @@
 package aoc2015
 
+import scala.util.Using
+
 object Day12 extends App {
 
   import play.api.libs.json._
   import scala.io.Source
 
-  val input = Source.fromFile("inputs/2015/12.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2015/12.txt"))(_.getLines().next()).get
 
   val json: JsValue = Json.parse(input)
 

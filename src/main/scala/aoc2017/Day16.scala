@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day16 extends App {
 
@@ -8,7 +9,7 @@ object Day16 extends App {
   val exchange = """x(\d+)/(\d+)""".r
   val partner = """p(\w)/(\w)""".r
 
-  val input = Source.fromFile("inputs/2017/16.txt").getLines().next().split(",")
+  val input = Using(Source.fromFile("inputs/2017/16.txt"))(_.getLines().next().split(",")).get
 
   val initialArrangement = ('a' to 'p').mkString
   def justDance(initialArrangement: String): String = {

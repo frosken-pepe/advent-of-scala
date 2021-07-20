@@ -2,6 +2,7 @@ package aoc2016
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day22 extends App {
 
@@ -11,10 +12,10 @@ object Day22 extends App {
 
   val node = """/dev/grid/node-x(\d+)-y(\d+) +(\d+)T +(\d+)T.*""".r
 
-  val input = Source.fromFile("inputs/2016/22.txt").getLines().flatMap(_ match {
+  val input = Using(Source.fromFile("inputs/2016/22.txt"))(_.getLines().flatMap(_ match {
     case node(x, y, size, used) => Some(Node(x.toInt, y.toInt, size.toInt, used.toInt))
     case _ => None
-  }).toList
+  }).toList).get
 
   val viablePairs = (for {
     a <- input if a.used != 0

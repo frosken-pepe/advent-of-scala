@@ -2,10 +2,11 @@ package aoc2020
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day23 extends App {
 
-  val input = Source.fromFile("inputs/2020/23.txt").getLines().next().split("").map(_.toInt)
+  val input = Using(Source.fromFile("inputs/2020/23.txt"))(_.getLines().next().split("").map(_.toInt)).get
 
   case class Cup(label: Int, var prev: Cup, var next: Cup) {
 

@@ -1,19 +1,20 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day07 extends App {
 
   case class Ipv7(supernet: List[String], hypernet: List[String])
 
-  val input = Source.fromFile("inputs/2016/07.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/07.txt"))(_.getLines()
     .toList
     .map(_.split("[\\[\\]]").toList)
     .map(_.zipWithIndex)
     .map { q =>
       val (as, bs) = q.partition(_._2 % 2 == 0)
       Ipv7(as.map(_._1), bs.map(_._1))
-    }
+    }).get
 
   def hasABBA(part: String): Boolean =
     part.sliding(4).map(_.toList).foldLeft(false) {

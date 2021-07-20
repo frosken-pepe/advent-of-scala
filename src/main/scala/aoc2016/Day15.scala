@@ -1,6 +1,7 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day15 extends App {
 
@@ -10,9 +11,9 @@ object Day15 extends App {
     case re(n, start) => (n.toInt, start.toInt)
   }
 
-  val input = Source.fromFile("inputs/2016/15.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/15.txt"))(_.getLines()
     .map(disc)
-    .toList
+    .toList).get
 
   def capsule(input: List[(Int, Int)]): Int = LazyList.iterate(0)(_ + 1).map {
     t => (t, input.zipWithIndex.map { case (disc, index) => (disc._2 + t + index + 1) % disc._1 })

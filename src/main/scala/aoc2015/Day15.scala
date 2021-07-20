@@ -1,6 +1,7 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day15 extends App {
 
@@ -16,9 +17,9 @@ object Day15 extends App {
     }
   }
 
-  val input = Source.fromFile("inputs/2015/15.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2015/15.txt"))(_.getLines()
     .map(Ingredient.apply)
-    .toList
+    .toList).get
 
   def score(ingredients: Map[Ingredient, Int], targetCalories: Option[Int]): Int = {
     val cap = math.max(0, ingredients.map(it => it._1.capacity * it._2).sum)

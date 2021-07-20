@@ -1,13 +1,14 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day18 extends App {
 
-  val input = Source.fromFile("inputs/2016/18.txt").getLines().next().map {
+  val input = Using(Source.fromFile("inputs/2016/18.txt"))(_.getLines().next().map {
     case '^' => true
     case _ => false
-  }.toList
+  }.toList).get
 
   def isTrap(left: Boolean, center: Boolean, right: Boolean): Boolean = (left, center, right) match {
     case (true, true, false) => true

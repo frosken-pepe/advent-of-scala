@@ -1,6 +1,7 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day05 extends App {
 
@@ -14,7 +15,7 @@ object Day05 extends App {
     8 * binToInt(r, 'B') + binToInt(c, 'R')
   }
 
-  val ids = Source.fromFile("inputs/2020/05.txt").getLines().map(seatID).toSet
+  val ids = Using(Source.fromFile("inputs/2020/05.txt"))(_.getLines().map(seatID).toSet).get
 
   println(ids.max)
 

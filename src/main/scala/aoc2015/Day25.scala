@@ -1,13 +1,14 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day25 extends App {
 
   val re = """row (\d+), column (\d+)""".r.unanchored
 
-  val (row, col) = Source.fromFile("inputs/2015/25.txt").getLines()
-    .map { case re(r, c) => (r.toInt - 1, c.toInt - 1) }.toList.head
+  val (row, col) = Using(Source.fromFile("inputs/2015/25.txt"))(_.getLines()
+    .map { case re(r, c) => (r.toInt - 1, c.toInt - 1) }.toList.head).get
 
   val firstCode = 20151125
   val firstCoord = (0, 0)

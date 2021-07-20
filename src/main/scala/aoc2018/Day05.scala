@@ -2,10 +2,11 @@ package aoc2018
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day05 extends App {
 
-  val input = Source.fromFile("inputs/2018/05.txt").getLines().next().toList
+  val input = Using(Source.fromFile("inputs/2018/05.txt"))(_.getLines().next().toList).get
 
   def oppositePolarity(a: Char, b: Char): Boolean = a.isUpper != b.isUpper && a.toLower == b.toLower
 

@@ -3,10 +3,11 @@ package aoc2016
 import aoc2015.Day04.md5
 
 import scala.io.Source
+import scala.util.Using
 
 object Day17 extends App {
 
-  val input = Source.fromFile("inputs/2016/17.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2016/17.txt"))(_.getLines().next()).get
 
   case class State(x: Int, y: Int, path: String)
 

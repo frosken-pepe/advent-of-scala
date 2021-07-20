@@ -1,13 +1,13 @@
 package aoc2015
 
+import java.security.MessageDigest
+import javax.xml.bind.DatatypeConverter
 import scala.io.Source
+import scala.util.Using
 
 object Day04 extends App {
 
-  import java.security.MessageDigest
-  import javax.xml.bind.DatatypeConverter
-
-  val input = Source.fromFile("inputs/2015/04.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2015/04.txt"))(_.getLines().next()).get
 
   def md5(s: String): String = DatatypeConverter
     .printHexBinary(MessageDigest.getInstance("MD5").digest(s.getBytes()))

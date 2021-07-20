@@ -1,6 +1,7 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day08 extends App {
 
@@ -27,9 +28,9 @@ object Day08 extends App {
 
   case class RotateCol(col: Int, by: Int) extends ScreenInstr
 
-  val input = Source.fromFile("inputs/2016/08.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/08.txt"))(_.getLines()
     .map(ScreenInstr.apply)
-    .toList
+    .toList).get
 
   val init = Set[(Int, Int)]()
 

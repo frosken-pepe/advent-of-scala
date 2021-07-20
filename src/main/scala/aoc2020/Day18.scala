@@ -2,10 +2,11 @@ package aoc2020
 
 import scala.collection.immutable.Queue
 import scala.io.Source
+import scala.util.Using
 
 object Day18 extends App {
 
-  val input = Source.fromFile("inputs/2020/18.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2020/18.txt"))(_.getLines().toList).get
 
   type Parser[A] = String => Option[(A, String)]
 

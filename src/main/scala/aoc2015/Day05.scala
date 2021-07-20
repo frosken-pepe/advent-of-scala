@@ -1,10 +1,11 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day05 extends App {
 
-  val input = Source.fromFile("inputs/2015/05.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2015/05.txt"))(_.getLines().toList).get
 
   def isNice1(s: String): Boolean =
     s.count("aeiou".contains(_)) >= 3 &&

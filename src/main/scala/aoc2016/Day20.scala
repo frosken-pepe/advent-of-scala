@@ -2,13 +2,14 @@ package aoc2016
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day20 extends App {
 
-  val input = Source.fromFile("inputs/2016/20.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/20.txt"))(_.getLines()
     .map(_.split("-").map(_.toLong).toList)
     .map { case from :: to :: Nil => (from, to) }
-    .toList
+    .toList).get
 
   val candidates = List(0L) ++ input.map(_._2 + 1)
 

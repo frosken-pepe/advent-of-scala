@@ -1,10 +1,11 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day06 extends App {
 
-  val input = Source.fromFile("inputs/2020/06.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2020/06.txt"))(_.getLines().toList).get
 
   val groups = input.mkString("\n")
     .split("\n\n")

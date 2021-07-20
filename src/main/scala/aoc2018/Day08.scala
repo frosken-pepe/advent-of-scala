@@ -2,10 +2,11 @@ package aoc2018
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day08 extends App {
 
-  val input = Source.fromFile("inputs/2018/08.txt").getLines().next().split(" ").map(_.toInt).toList
+  val input = Using(Source.fromFile("inputs/2018/08.txt"))(_.getLines().next().split(" ").map(_.toInt).toList).get
 
   case class Node(children: List[Node], metadata: List[Int]) {
     def value: Int =

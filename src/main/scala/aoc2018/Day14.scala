@@ -1,12 +1,13 @@
 package aoc2018
 
 import scala.io.Source
+import scala.util.Using
 
 object Day14 extends App {
 
   // piece of crap
 
-  val input = Source.fromFile("inputs/2018/14.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2018/14.txt"))(_.getLines().next()).get
 
   case class Recipe(score: Int, var next: Recipe) {
     def insertAfter(s: Int): Recipe = {

@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day20 extends App {
 
@@ -30,23 +31,23 @@ object Day20 extends App {
 
   val re = """p=<(-?\d+),(-?\d+),(-?\d+)>, v=<(-?\d+),(-?\d+),(-?\d+)>, a=<(-?\d+),(-?\d+),(-?\d+)>""".r
 
-  val input = Source.fromFile("inputs/2017/20.txt")
-    .getLines()
+  val input = Using(Source.fromFile("inputs/2017/20.txt"))(_.getLines()
     .zipWithIndex
     .map { case (re(px, py, pz, vx, vy, vz, ax, ay, az), id) => Particle(id, (px.toInt, py.toInt, pz.toInt), (vx.toInt, vy.toInt, vz.toInt), (ax.toInt, ay.toInt, az.toInt)) }
-    .toIndexedSeq
+    .toIndexedSeq).get
 
   println(input.min.id)
 
-  val ll = LazyList.unfold(input) { particles =>
-    val moved = particles.map(_.move)
-    val grouped = moved.groupBy(_.p)
-    val remaining = grouped.filter {
-      case (_, parts) => parts.length == 1
-    }.flatMap(_._2).toIndexedSeq
-    if (particles.size != remaining.size || particles.sorted.map(_.id) != remaining.sorted.map(_.id)) Some(remaining.size, remaining)
+  def update(particles: IndexedSeq[Particle]): Option[IndexedSeq[Particle]] = {
+    val remaining = particles
+      .map(_.move)
+      .groupBy(_.p)
+      .filter { case (_, parts) => parts.length == 1 }
+      .flatMap(_._2)
+      .toIndexedSeq
+    if (particles.size != remaining.size || particles.sorted.map(_.id) != remaining.sorted.map(_.id)) Some(remaining)
     else None
   }
 
-  println(ll.last)
+  println(LazyList.unfold(input)(update(_).map { p => (p.size, p) }).last)
 }

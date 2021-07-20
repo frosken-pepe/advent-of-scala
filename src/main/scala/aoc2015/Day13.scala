@@ -1,7 +1,7 @@
 package aoc2015
 
 import scala.io.Source
-import scala.util.Try
+import scala.util.{Try, Using}
 
 object Day13 extends App {
 
@@ -16,10 +16,9 @@ object Day13 extends App {
     }
   }
 
-  val input = Source.fromFile("inputs/2015/13.txt")
-    .getLines()
+  val input = Using(Source.fromFile("inputs/2015/13.txt"))(_.getLines()
     .map(Seating.apply)
-    .toList
+    .toList).get
 
   def maximizeHappiness(seats: List[Seating]) = {
 

@@ -1,6 +1,7 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day11 extends App {
 
@@ -14,7 +15,7 @@ object Day11 extends App {
 
   type Seats = Map[(Int, Int), State]
 
-  val seats0: Seats = Source.fromFile("inputs/2020/11.txt").getLines()
+  val seats0: Seats = Using(Source.fromFile("inputs/2020/11.txt"))(_.getLines()
     .zipWithIndex
     .flatMap {
       case (line, y) => line.zipWithIndex.map {
@@ -22,7 +23,7 @@ object Day11 extends App {
         case ('.', x) => (x, y) -> Floor
       }
     }
-    .toMap
+    .toMap).get
 
   def evolve(neighs: (Int, Int) => Set[(Int, Int)], minOccupied: Int)(seats: Seats): Seats = {
     (for {

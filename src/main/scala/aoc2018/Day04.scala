@@ -1,12 +1,13 @@
 package aoc2018
 
 import scala.io.Source
+import scala.util.Using
 
 object Day04 extends App {
 
   object Input {
 
-    private val input = Source.fromFile("inputs/2018/04.txt").getLines().toList.sorted
+    private val input = Using(Source.fromFile("inputs/2018/04.txt"))(_.getLines().toList.sorted).get
 
     private val timestamp = """\[1518-\d{2}-\d{2} (\d{2}):(\d{2})\] """
     private val beginShift = (timestamp + """Guard #(\d+) begins shift""").r

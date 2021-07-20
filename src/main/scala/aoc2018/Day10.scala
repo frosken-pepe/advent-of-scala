@@ -1,6 +1,7 @@
 package aoc2018
 
 import scala.io.Source
+import scala.util.Using
 
 object Day10 extends App {
 
@@ -12,9 +13,9 @@ object Day10 extends App {
 
   object Input {
     private val re = """position=<\s*(-?\d+),\s*(-?\d+)>\s*velocity=<\s*(-?\d+),\s*(-?\d+)>""".r
-    val input: List[Point] = Source.fromFile("inputs/2018/10.txt").getLines().map {
+    val input: List[Point] = Using(Source.fromFile("inputs/2018/10.txt"))(_.getLines().map {
       case re(px, py, vx, vy) => Point((px.toLong, py.toLong), (vx.toLong, vy.toLong))
-    }.toList
+    }.toList).get
   }
 
   def boundingBoxArea(points: List[Point]): Long = {

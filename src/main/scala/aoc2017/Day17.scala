@@ -1,10 +1,11 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day17 extends App {
 
-  val input = Source.fromFile("inputs/2017/17.txt").getLines().next().toInt
+  val input = Using(Source.fromFile("inputs/2017/17.txt"))(_.getLines().next().toInt).get
 
   case class Node(value: Int, var next: Node)
 

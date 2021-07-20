@@ -1,10 +1,11 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day02 extends App {
 
-  val input = Source.fromFile("inputs/2016/02.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2016/02.txt"))(_.getLines().toList).get
 
   def nextButton(lay: List[List[Char]])(p: (Int, Int), str: String) = {
     def next(pos: (Int, Int), ch: Char) = (pos, ch) match {

@@ -1,5 +1,7 @@
 package aoc2015
 
+import scala.util.Using
+
 object Day06 extends App {
 
   import scala.io.Source
@@ -35,10 +37,9 @@ object Day06 extends App {
     case turnOn(ax, ay, bx, by) => TurnOn((ax.toInt, ay.toInt), (bx.toInt, by.toInt))
   }
 
-  val input = Source.fromFile("inputs/2015/06.txt")
-    .getLines()
+  val input = Using(Source.fromFile("inputs/2015/06.txt"))(_.getLines()
     .map(parseLine)
-    .toList
+    .toList).get
 
   val z = (0 to 1000).map(_ => (0 to 1000).map(_ => 0).toArray).toArray
 

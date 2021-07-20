@@ -1,14 +1,16 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day24 extends App {
 
-  val input = Source.fromFile("inputs/2017/24.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2017/24.txt"))(_.getLines()
     .map(line => line.split("/").toList.map(_.toInt))
     .map { case a :: b :: Nil => (a, b) }
     .toList
-    .zipWithIndex.toSet
+    .zipWithIndex
+    .toSet).get
 
   case class State(bridge: List[(Int, Int)], used: Set[Int]) {
     def strength: Int = bridge.map(p => p._1 + p._2).sum

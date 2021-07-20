@@ -2,10 +2,11 @@ package aoc2016
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day13 extends App {
 
-  val input = Source.fromFile("inputs/2016/13.txt").getLines().map(_.toInt).next()
+  val input = Using(Source.fromFile("inputs/2016/13.txt"))(_.getLines().map(_.toInt).next()).get
 
   def isOpen(coord: (Int, Int)): Boolean = {
     val (x, y) = coord

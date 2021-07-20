@@ -1,6 +1,7 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day04 extends App {
 
@@ -8,10 +9,9 @@ object Day04 extends App {
 
   case class Room(encName: String, sectorId: Int, checksum: String)
 
-  val input = Source.fromFile("inputs/2016/04.txt")
-    .getLines()
+  val input = Using(Source.fromFile("inputs/2016/04.txt"))(_.getLines()
     .map { case re(encName, sectorId, checksum) => Room(encName, sectorId.toInt, checksum) }
-    .toList
+    .toList).get
 
   def checksum(encName: String): String = {
     encName.filter(_.isLower).foldLeft(Map[Char, Int]()) {

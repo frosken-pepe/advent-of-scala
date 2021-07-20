@@ -2,6 +2,7 @@ package aoc2020
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day24 extends App {
 
@@ -15,7 +16,7 @@ object Day24 extends App {
     case None => acc.reverse
   }
 
-  val input = Source.fromFile("inputs/2020/24.txt").getLines().map(parseLine(_)).toList
+  val input = Using(Source.fromFile("inputs/2020/24.txt"))(_.getLines().map(parseLine(_)).toList).get
 
   case class Vec2(x: Int, y: Int) {
     def step(dir: String): Vec2 = dir match {

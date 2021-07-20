@@ -1,6 +1,7 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day21 extends App {
 
@@ -10,7 +11,7 @@ object Day21 extends App {
   case class Food(ingredients: Set[Ingredient], allergens: Set[Allergen])
 
   val input = {
-    val lines = Source.fromFile("inputs/2020/21.txt").getLines().toList
+    val lines = Using(Source.fromFile("inputs/2020/21.txt"))(_.getLines().toList).get
     val re = """(.*) \(contains (.*)\)""".r
     lines.map {
       case re(ingredients, allergens) => Food(

@@ -1,10 +1,11 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day09 extends App {
 
-  val input = Source.fromFile("inputs/2016/09.txt").getLines().next()
+  val input = Using(Source.fromFile("inputs/2016/09.txt"))(_.getLines().next()).get
 
   sealed class Token
 

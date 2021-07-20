@@ -2,13 +2,14 @@ package aoc2017
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day06 extends App {
 
-  val input = Source.fromFile("inputs/2017/06.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2017/06.txt"))(_.getLines()
     .next().split("\\W").map(_.toInt).zipWithIndex.map {
     case (value, index) => (index, value)
-  }.toMap
+  }.toMap).get
 
   def maxIndex(map: Map[Int, Int]): Int = {
     (1 until map.size).foldLeft(0) {

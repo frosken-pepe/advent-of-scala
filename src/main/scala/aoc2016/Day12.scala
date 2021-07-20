@@ -1,13 +1,15 @@
 package aoc2016
 
+import scala.util.Using
+
 object Day12 extends App {
 
   import scala.io.Source
   import AssembunnyInterpreter._
 
-  val input = Source.fromFile("inputs/2016/12.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/12.txt"))(_.getLines()
     .map(assembunny)
-    .toList
+    .toList).get
 
   val memory = Map(
     Reg("a") -> 0L,

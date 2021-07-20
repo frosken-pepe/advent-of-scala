@@ -2,10 +2,11 @@ package aoc2020
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day10 extends App {
 
-  val joltages = Source.fromFile("inputs/2020/10.txt").getLines().map(_.toInt).toList
+  val joltages = Using(Source.fromFile("inputs/2020/10.txt"))(_.getLines().map(_.toInt).toList).get
 
   val builtin = joltages.max + 3
 

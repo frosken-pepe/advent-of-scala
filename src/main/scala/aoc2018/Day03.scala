@@ -1,6 +1,7 @@
 package aoc2018
 
 import scala.io.Source
+import scala.util.Using
 
 object Day03 extends App {
 
@@ -18,9 +19,9 @@ object Day03 extends App {
 
   val claim = """#(\d+) @ (\d+),(\d+): (\d+)x(\d+)""".r
 
-  val claims = Source.fromFile("inputs/2018/03.txt").getLines()
+  val claims = Using(Source.fromFile("inputs/2018/03.txt"))(_.getLines()
     .map { case claim(id, x, y, w, h) => Claim(id.toInt, x.toInt, y.toInt, w.toInt, h.toInt) }
-    .toList
+    .toList).get
 
   val counts = claims.foldLeft(Map[(Int, Int), Int]()) {
     case (acc, claim) => claim.squares.foldLeft(acc) {

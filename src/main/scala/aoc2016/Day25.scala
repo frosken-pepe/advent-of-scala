@@ -1,14 +1,15 @@
 package aoc2016
 
 import scala.io.Source
+import scala.util.Using
 
 object Day25 extends App {
 
   import AssembunnyInterpreter._
 
-  val input = Source.fromFile("inputs/2016/25.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2016/25.txt"))(_.getLines()
     .map(assembunny)
-    .toList
+    .toList).get
 
   val stopWhen: (CPU) => Boolean = cpu => cpu.output.length > 20
 

@@ -1,13 +1,14 @@
 package aoc2018
 
 import scala.io.Source
+import scala.util.Using
 
 object Day12 extends App {
 
   case class Rule(ll: Boolean, l: Boolean, c: Boolean, r: Boolean, rr: Boolean)
 
   object Input {
-    private val input = Source.fromFile("inputs/2018/12.txt").getLines()
+    private val input = Using(Source.fromFile("inputs/2018/12.txt"))(_.getLines()).get
 
     private val re = """(.)(.)(.)(.)(.) => (.)""".r
 
@@ -25,18 +26,17 @@ object Day12 extends App {
     }.toSet
   }
 
-  def neighs(i: Int): Set[Int] = Set(i - 2, i - 1, i, i + 1, i + 1)
+  def neighs(i: Int): Set[Int] = ((i - 2) until (i + 2)).toSet
 
   def findRule(state: Set[Int], idx: Int): Rule = {
-    Rule(state.contains(idx-2), state.contains(idx-1), state.contains(idx), state.contains(idx+1), state.contains(idx+2))
+    Rule(state.contains(idx - 2), state.contains(idx - 1), state.contains(idx), state.contains(idx + 1), state.contains(idx + 2))
   }
 
-  def evolve(state: Set[Int]): Set[Int] = {
-    state.flatMap(neighs).flatMap { idx =>
-      if (Input.rules.contains(findRule(state, idx))) Some(idx)
-      else None
-    }
-  }
+  def evolve(state: Set[Int]): Set[Int] = for {
+    s <- state
+    neigh <- neighs(s)
+    if Input.rules.contains(findRule(state, neigh))
+  } yield neigh
 
   val ll = LazyList.iterate(Input.initialState)(evolve).map(_.sum)
 

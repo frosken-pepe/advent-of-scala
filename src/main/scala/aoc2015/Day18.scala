@@ -1,15 +1,16 @@
 package aoc2015
 
 import scala.io.Source
+import scala.util.Using
 
 object Day18 extends App {
 
-  val input = Source.fromFile("inputs/2015/18.txt").getLines().toList
+  val input = Using(Source.fromFile("inputs/2015/18.txt"))(_.getLines().toList
     .zipWithIndex
     .flatMap { case (line, y) => line.zipWithIndex.map { case (ch, x) => (x, y, ch) } }
     .filter(_._3 == '#')
     .map { case (x, y, _) => (x, y) }
-    .toSet
+    .toSet).get
 
   val deltas = Set(-1, 0, 1)
 

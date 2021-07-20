@@ -3,13 +3,14 @@ package aoc2015
 import aoc2015.Day22.GameState.{newPoison, newRecharge, newShield}
 
 import scala.io.Source
+import scala.util.Using
 
 object Day22 extends App {
 
-  val input = Source.fromFile("inputs/2015/22.txt").getLines()
+  val input = Using(Source.fromFile("inputs/2015/22.txt"))(_.getLines()
     .map(line => line.split(": "))
     .map(arr => arr(0) -> arr(1).toInt)
-    .toMap
+    .toMap).get
 
   abstract sealed class Spell {
     def cost: Int

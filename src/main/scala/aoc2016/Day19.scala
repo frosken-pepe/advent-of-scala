@@ -2,10 +2,11 @@ package aoc2016
 
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.Using
 
 object Day19 extends App {
 
-  val input = Source.fromFile("inputs/2016/19.txt").getLines().next().toInt
+  val input = Using(Source.fromFile("inputs/2016/19.txt"))(_.getLines().next().toInt).get
 
   case class Node(id: Int, var next: Node)
 

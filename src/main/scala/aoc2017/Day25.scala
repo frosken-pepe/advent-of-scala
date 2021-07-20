@@ -1,6 +1,7 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day25 extends App {
 
@@ -15,7 +16,7 @@ object Day25 extends App {
 
   object Input {
 
-    private val input = Source.fromFile("inputs/2017/25.txt").getLines().toList
+    private val input = Using(Source.fromFile("inputs/2017/25.txt"))(_.getLines().toList).get
 
     private val reStartState = """Begin in state (\w+)\.""".r
     val startState: String = input.head match {

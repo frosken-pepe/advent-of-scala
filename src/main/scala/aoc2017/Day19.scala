@@ -1,10 +1,11 @@
 package aoc2017
 
 import scala.io.Source
+import scala.util.Using
 
 object Day19 extends App {
 
-  val input = Source.fromFile("inputs/2017/19.txt").getLines().toIndexedSeq
+  val input = Using(Source.fromFile("inputs/2017/19.txt"))(_.getLines().toIndexedSeq).get
 
   val rows = input.length
 

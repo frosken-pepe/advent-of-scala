@@ -3,13 +3,14 @@ package aoc2016
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Using
 
 object Day24 extends App {
 
   case class State(openSpaces: Set[(Int, Int)], currentLocation: (Int, Int), placesToVisit: Set[(Int, Int)], initialLocation: (Int, Int))
 
   val input = {
-    val list = Source.fromFile("inputs/2016/24.txt").getLines().toList
+    val list = Using(Source.fromFile("inputs/2016/24.txt"))(_.getLines().toList).get
     val openSpaces = for {
       (row, y) <- list.zipWithIndex
       (ch, x) <- row.zipWithIndex if ch != '#'

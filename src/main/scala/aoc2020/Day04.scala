@@ -1,15 +1,16 @@
 package aoc2020
 
 import scala.io.Source
+import scala.util.Using
 
 object Day04 extends App {
 
-  val passports = Source.fromFile("inputs/2020/04.txt").getLines()
+  val passports = Using(Source.fromFile("inputs/2020/04.txt"))(_.getLines()
     .toList
     .mkString("\n")
     .split("\n\n")
     .toList
-    .map(_.split(List(' ', '\n', ',').toArray).map(_.trim).toList)
+    .map(_.split(List(' ', '\n', ',').toArray).map(_.trim).toList)).get
 
   val yr = """(\d{4})""".r
   val hgt = """(\d+)(in|cm)""".r
