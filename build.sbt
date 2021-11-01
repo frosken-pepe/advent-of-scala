@@ -1,7 +1,8 @@
-name := "advent-of-scala"
-
-version := "0.1"
-
-scalaVersion := "2.13.3"
-
-libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.0"
+lazy val root = project
+  .in(file("."))
+  .settings(
+    name := "advent-of-scala",
+    version := "0.1",
+    scalaVersion := "2.13.6",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.0-RC5"
+  )
