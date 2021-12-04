@@ -13,21 +13,11 @@ object Day04 extends App {
   case class Game(numbers: List[Int], boards: List[Board], played: List[Int])
 
   val input: Game = Using(Source.fromFile("inputs/2021/04.txt")) { source =>
-    val iterator = source.getLines()
-    val numbers = iterator.next().split(",").map(_.toInt).toList
-    iterator.next()
-    var buffer: List[List[Int]] = Nil
-    var boards: List[Board] = Nil
-    while (iterator.hasNext) {
-      val line = iterator.next()
-      if (line.isEmpty) {
-        boards = boards ++ List(Board(buffer))
-        buffer = Nil
-      } else {
-        buffer = buffer ++ List(line.split("\\s+").filter(_.nonEmpty).map(_.toInt).toList)
-      }
-    }
-    boards = boards ++ List(Board(buffer))
+    val lines = source.getLines().toList
+    val numbers = lines.head.split(",").map(_.toInt).toList
+    val boards = lines.drop(2).sliding(6, 6).map { window =>
+      Board(window.filter(_.nonEmpty).map(_.split("\\s+").filter(_.nonEmpty).map(_.toInt).toList))
+    }.toList
     Game(numbers, boards, Nil)
   }.get
 
