@@ -9,18 +9,18 @@ object Day06 extends App {
     .next()
     .split(",").map(_.toInt).toList).get
 
-  val inputMap = (0 to 8).map {
-    age => age -> input.count(_ == age).toLong
-  }.toMap
+  val inputVec = (0 to 8).map {
+    age => input.count(_ == age).toLong
+  }.toVector
 
-  def fishy(fish: Map[Int, Long]): Map[Int, Long] = {
-    (0 to 8).map {
-      case age if age == 6 => age -> (fish(0) + fish(7))
-      case age if age == 8 => age -> fish(0)
-      case age => age -> fish(age + 1)
-    }.toMap
+  def fishy(fish: Vector[Long]): Vector[Long] = {
+    (0 to 8).toVector.map {
+      case age if age == 6 => fish(0) + fish(7)
+      case age if age == 8 => fish(0)
+      case age => fish(age + 1)
+    }
   }
 
-  println(LazyList.iterate(inputMap)(fishy).drop(80).head.values.sum)
-  println(LazyList.iterate(inputMap)(fishy).drop(256).head.values.sum)
+  println(LazyList.iterate(inputVec)(fishy).drop(80).head.sum)
+  println(LazyList.iterate(inputVec)(fishy).drop(256).head.sum)
 }
