@@ -36,7 +36,7 @@ object Day08 extends App {
     s.map(invertChar(perm)).mkString("").sorted
   }
 
-  def valid(perm: String, s: String): Boolean = {
+  def valid(perm: String)(s: String): Boolean = {
     val decoded = decode(perm)(s)
     digits.values.exists(_ == decoded)
   }
@@ -52,7 +52,7 @@ object Day08 extends App {
     val patterns = example._1 ++ example._2
     ('a' to 'g').permutations
       .map(_.mkString(""))
-      .filter(perm => patterns.forall(pattern => valid(perm, pattern)))
+      .filter(perm => patterns.forall(valid(perm)))
       .map(decodeOutput(_, example._2))
       .next()
   }

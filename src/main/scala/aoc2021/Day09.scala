@@ -1,6 +1,7 @@
 package aoc2021
 
-import scala.annotation.tailrec
+import aoc2018.Day17.fixedPoint
+
 import scala.io.Source
 import scala.util.Using
 
@@ -39,10 +40,8 @@ object Day09 extends App {
     } yield q)
   }
 
-  @tailrec def findBasins(found: Set[Set[(Int, Int)]]): Set[Set[(Int, Int)]] = {
-    val newBasins = found.map(expandBasin)
-    if (newBasins == found) newBasins
-    else findBasins(newBasins)
+  def findBasins(found: Set[Set[(Int, Int)]]): Set[Set[(Int, Int)]] = {
+    found.map(fixedPoint(expandBasin))
   }
 
   val initialBasins = (for {
