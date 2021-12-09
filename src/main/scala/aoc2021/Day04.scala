@@ -7,7 +7,7 @@ import scala.util.Using
 object Day04 extends App {
 
   case class Board(numbers: List[List[Int]]) {
-    lazy val T: Board = Board((0 until 5).map(j => numbers.map(_ (j))).toList)
+    lazy val T: Board = Board(numbers.transpose)
   }
 
   case class Game(numbers: List[Int], boards: List[Board], played: List[Int])
