@@ -8,11 +8,9 @@ object Day10 extends App {
 
   val input = Using(Source.fromFile("inputs/2021/10.txt"))(_.getLines().toList).get
 
-  def matchChar(a: Char, b: Char): Boolean = {
-    a == '>' && b == '<' ||
-      a == ')' && b == '(' ||
-      a == ']' && b == '[' ||
-      a == '}' && b == '{'
+  def isMatch(a: Char, b: Char): Boolean = s"$b$a" match {
+    case "<>" | "[]" | "{}" | "()" => true
+    case _ => false
   }
 
   def scoreMismatch(c: Char) = c match {
@@ -24,8 +22,10 @@ object Day10 extends App {
 
   @tailrec def scoreInvalid(line: String, stack: String): Option[Int] = {
     if (line.isEmpty) None
-    else if (">]})".contains(line.head) && !matchChar(line.head, stack.head)) Some(scoreMismatch(line.head))
-    else if (">]})".contains(line.head)) scoreInvalid(line.tail, stack.tail)
+    else if (">]})".contains(line.head)) {
+      if (isMatch(line.head, stack.head)) scoreInvalid(line.tail, stack.tail)
+      else Some(scoreMismatch(line.head))
+    }
     else scoreInvalid(line.tail, line.head + stack)
   }
 
@@ -39,23 +39,27 @@ object Day10 extends App {
   }
 
   @tailrec def completeLine(line: String, stack: String): String = {
-    if (line.isEmpty) stack.map(invert).mkString("")
+    if (line.isEmpty) stack.map(invert)
     else if (">]})".contains(line.head)) completeLine(line.tail, stack.tail)
     else completeLine(line.tail, line.head + stack)
   }
 
+  def increment(c: Char) = c match {
+    case ')' => 1
+    case ']' => 2
+    case '}' => 3
+    case '>' => 4
+  }
+
   def scoreCompletion(s: String): BigInt = {
-    s.foldLeft(BigInt(0)) {
-      case (acc, ')') => 5 * acc + 1
-      case (acc, ']') => 5 * acc + 2
-      case (acc, '}') => 5 * acc + 3
-      case (acc, '>') => 5 * acc + 4
+    s.map(increment).foldLeft(BigInt(0)) {
+      case (acc, inc) => 5 * acc + inc
     }
   }
 
   val sorted = input.filter(s => scoreInvalid(s, "").isEmpty)
     .map(s => completeLine(s, ""))
-    .map(s => scoreCompletion(s))
+    .map(scoreCompletion)
     .sorted
 
   println(sorted(sorted.size / 2))
