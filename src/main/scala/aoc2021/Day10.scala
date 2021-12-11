@@ -6,7 +6,9 @@ import scala.util.Using
 
 object Day10 extends App {
 
-  val input = Using(Source.fromFile("inputs/2021/10.txt"))(_.getLines().toList).get
+  val input = Using(Source.fromFile("inputs/2021/10.txt"))(_.getLines()
+    .map(_.toList)
+    .toList).get
 
   def isMatch(a: Char, b: Char): Boolean = s"$b$a" match {
     case "<>" | "[]" | "{}" | "()" => true
@@ -20,16 +22,20 @@ object Day10 extends App {
     case '>' => 25137
   }
 
-  @tailrec def scoreInvalid(line: String, stack: String): Option[Int] = {
-    if (line.isEmpty) None
-    else if (">]})".contains(line.head)) {
-      if (isMatch(line.head, stack.head)) scoreInvalid(line.tail, stack.tail)
-      else Some(scoreMismatch(line.head))
+  def scoreInvalid(line: List[Char]): Option[Int] = {
+    @tailrec def go(todo: List[Char], acc: List[Char]): Option[Int] = {
+      if (todo.isEmpty) None
+      else if (">]})".contains(todo.head)) {
+        if (isMatch(todo.head, acc.head)) go(todo.tail, acc.tail)
+        else Some(scoreMismatch(todo.head))
+      }
+      else go(todo.tail, todo.head :: acc)
     }
-    else scoreInvalid(line.tail, line.head + stack)
+
+    go(line, Nil)
   }
 
-  println(input.flatMap(s => scoreInvalid(s, "")).sum)
+  println(input.flatMap(scoreInvalid).sum)
 
   def invert(ch: Char): Char = ch match {
     case '{' => '}'
@@ -38,10 +44,14 @@ object Day10 extends App {
     case '<' => '>'
   }
 
-  @tailrec def completeLine(line: String, stack: String): String = {
-    if (line.isEmpty) stack.map(invert)
-    else if (">]})".contains(line.head)) completeLine(line.tail, stack.tail)
-    else completeLine(line.tail, line.head + stack)
+  def completeLine(line: List[Char]): List[Char] = {
+    @tailrec def go(todo: List[Char], acc: List[Char]): List[Char] = {
+      if (todo.isEmpty) acc.map(invert)
+      else if (">]})".contains(todo.head)) go(todo.tail, acc.tail)
+      else go(todo.tail, todo.head :: acc)
+    }
+
+    go(line, Nil)
   }
 
   def increment(c: Char) = c match {
@@ -51,14 +61,14 @@ object Day10 extends App {
     case '>' => 4
   }
 
-  def scoreCompletion(s: String): BigInt = {
+  def scoreCompletion(s: List[Char]): BigInt = {
     s.map(increment).foldLeft(BigInt(0)) {
       case (acc, inc) => 5 * acc + inc
     }
   }
 
-  val sorted = input.filter(s => scoreInvalid(s, "").isEmpty)
-    .map(s => completeLine(s, ""))
+  val sorted = input.filter(scoreInvalid(_).isEmpty)
+    .map(completeLine)
     .map(scoreCompletion)
     .sorted
 
