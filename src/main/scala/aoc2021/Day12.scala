@@ -7,7 +7,7 @@ import scala.util.Using
 
 object Day12 extends App {
 
-  case class Cave(id: String, neighs: List[String])
+  case class Cave(id: String, neighs: Set[String])
 
   val input = Using(Source.fromFile("inputs/2021/12.txt"))(_.getLines()
     .map { case s"$a-$b" => (a, b) }
@@ -16,8 +16,7 @@ object Day12 extends App {
   val caveIds = input.flatMap(c => List(c._1, c._2)).distinct
 
   val caves: Map[String, Cave] = caveIds.map(caveId => Cave(caveId,
-    input.filter(_._1 == caveId).map(_._2) ++
-      input.filter(_._2 == caveId).map(_._1)
+    (input.filter(_._1 == caveId).map(_._2) ++ input.filter(_._2 == caveId).map(_._1)).toSet
   )).map(cave => cave.id -> cave).toMap
 
   def isFinal(path: List[String]): Boolean = {
@@ -34,10 +33,7 @@ object Day12 extends App {
           caveId.forall(_.isUpper) || !path.contains(caveId) ||
             allowVisitTwice.contains(caveId) && path.count(c => c == caveId) == 1
       }
-      for {
-        _ <- Set(())
-        n <- neighs
-      } yield n :: path
+      neighs.map(_ :: path)
     }
   }
 
