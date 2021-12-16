@@ -15,8 +15,8 @@ object Day16 extends App {
   }
 
   def hex2bin(s: String): String = {
-    s.map { ch => Integer.parseInt(s"$ch", 16) }
-      .map { int => Integer.toBinaryString(int) }
+    s.map(ch => Integer.parseInt(s"$ch", 16))
+      .map(Integer.toBinaryString)
       .map(padLeft)
       .mkString
   }
@@ -49,54 +49,55 @@ object Day16 extends App {
     }
   }
 
-  @tailrec def decodeMany(n: Int, binary: String, acc: List[Packet]): Option[(List[Packet], String)] = {
-    if (n == 0) Some(acc.reverse, binary)
+  @tailrec def decodeMany(n: Int, binary: String, acc: List[Packet]): (List[Packet], String) = {
+    if (n == 0) (acc.reverse, binary)
     else decodePacket(binary) match {
-      case Some((packet, rest)) => decodeMany(n - 1, rest, packet :: acc)
-      case None => None
+      case (packet, rest) => decodeMany(n - 1, rest, packet :: acc)
     }
   }
 
   @tailrec def decodeList(binary: String, acc: List[Packet]): List[Packet] = {
     if (binary.isEmpty) acc.reverse
     else decodePacket(binary) match {
-      case Some((packet, rest)) => decodeList(rest, packet :: acc)
-      case None => acc
+      case (packet, rest) => decodeList(rest, packet :: acc)
     }
   }
 
-  def decodePacket(binary: String): Option[(Packet, String)] = {
+  def decodeLiteral(binary: String): (Long, String) = {
+    val grouped = binary.drop(6).sliding(5, 5).toList
+    val startingBit = grouped.map(_.head)
+    val toTake = startingBit.takeWhile(_ == '1').length + 1
+    val bits = grouped.take(toTake).map(_.tail).mkString
+    val literalValue = java.lang.Long.parseLong(bits, 2)
+    (literalValue, binary.drop(6 + toTake * 5))
+  }
+
+  def decodePacket(binary: String): (Packet, String) = {
     val version = Integer.parseInt(binary.take(3), 2)
     val typeId = Integer.parseInt(binary.slice(3, 6), 2)
     if (typeId == 4) {
-      val grouped = binary.drop(6).sliding(5, 5).toList
-      val startingBit = grouped.map(_.head)
-      val toTake = startingBit.takeWhile(_ == '1').length + 1
-      val bits = grouped.take(toTake).map(_.tail).mkString
-      val literalValue = java.lang.Long.parseLong(bits, 2)
-      Some(Literal(version, literalValue), binary.drop(6 + toTake * 5))
+      decodeLiteral(binary) match {
+        case (literalValue, rest) => (Literal(version, literalValue), rest)
+      }
     } else {
       val lengthTypeId = binary.drop(6).head
       if (lengthTypeId == '0') {
         val lengthOfSubPackets = Integer.parseInt(binary.slice(7, 22), 2)
         val slice = binary.slice(22, lengthOfSubPackets + 22)
-        Some(Operator(typeId, version, decodeList(slice, Nil)), binary.drop(22 + lengthOfSubPackets))
+        (Operator(typeId, version, decodeList(slice, Nil)), binary.drop(22 + lengthOfSubPackets))
       } else {
         val numberOfSubPackets = Integer.parseInt(binary.slice(7, 18), 2)
         val rest = binary.drop(18)
-        decodeMany(numberOfSubPackets, rest, Nil).map {
-          case (value, str) => (Operator(typeId, version, value), str)
+        decodeMany(numberOfSubPackets, rest, Nil) match {
+          case (value, rest) => (Operator(typeId, version, value), rest)
         }
       }
     }
   }
 
-  println(decodePacket(binary))
+  val (packet, _) = decodePacket(binary)
 
-  println(decodePacket(binary).map {
-    case (packet, str) => {
-      println(str)
-      packet.eval
-    }
-  })
+  println(packet.sumVersion)
+
+  println(packet.eval)
 }
