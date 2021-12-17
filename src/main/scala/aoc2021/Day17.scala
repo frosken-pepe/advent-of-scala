@@ -5,39 +5,26 @@ import scala.util.Using
 
 object Day17 extends App {
 
-  val input = Using(Source.fromFile("inputs/2021/17.txt"))(_.getLines()
-    .next()).get
-
-  val targetArea = input match {
+  val (xmin, xmax, ymin, ymax) = Using(Source.fromFile("inputs/2021/17.txt"))(_.getLines().next() match {
     case s"target area: x=$xmin..$xmax, y=$ymin..$ymax" => (xmin.toInt, xmax.toInt, ymin.toInt, ymax.toInt)
-  }
+  }).get
 
-  val (xmin, xmax, ymin, ymax) = targetArea
-
-  case class Probe(x: Int, y: Int, vx: Int, vy: Int)
+  case class Probe(x: Int, y: Int, vx: Int, vy: Int, hitTarget: Boolean, highestPoint: Int)
 
   def update(probe: Probe): Probe = {
-    val x = probe.x + probe.vx
-    val y = probe.y + probe.vy
-    val vx = if (probe.vx > 0) probe.vx - 1
-    else if (probe.vx == 0) 0
-    else probe.vx + 1
-    val vy = probe.vy - 1
-    Probe(x, y, vx, vy)
+    val newProbe = Probe(probe.x + probe.vx, probe.y + probe.vy, probe.vx - probe.vx.sign, probe.vy - 1,
+      probe.hitTarget, probe.highestPoint)
+    newProbe
+      .copy(hitTarget = probe.hitTarget || newProbe.x >= xmin && newProbe.x <= xmax && newProbe.y >= ymin && newProbe.y <= ymax)
+      .copy(highestPoint = math.max(probe.highestPoint, newProbe.y))
   }
 
   def shoot(vx: Int, vy: Int): Option[Int] = {
-    val ll = LazyList.unfold((("", Int.MinValue), Probe(0, 0, vx, vy))) {
-      case ((s, highest), p@Probe(x, y, _, _)) =>
-        val highestPoint = math.max(highest, y)
-        if (x >= xmin && x <= xmax && y >= ymin && y <= ymax)
-          Some((s, highestPoint), (("hit_target", highestPoint), update(p)))
-        else if (y < ymin && s == "")
-          None
-        else
-          Some((s, highestPoint), ((s, highestPoint), update(p)))
-    }
-    ll.dropWhile(_._1 == "").headOption.map(_._2)
+    LazyList.unfold(Probe(0, 0, vx, vy, hitTarget = false, Int.MinValue)) {
+      case p@Probe(x, y, _, _, _, _) =>
+        if (y < ymin || x > xmax) None
+        else Some((p, update(p)))
+    }.dropWhile(!_.hitTarget).headOption.map(_.highestPoint)
   }
 
   val fired = for {
