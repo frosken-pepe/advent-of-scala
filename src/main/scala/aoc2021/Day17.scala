@@ -29,16 +29,15 @@ object Day17 extends App {
   def shoot(vx: Int, vy: Int): Option[Int] = {
     val ll = LazyList.unfold((("", Int.MinValue), Probe(0, 0, vx, vy))) {
       case ((s, highest), p@Probe(x, y, _, _)) =>
-        val pp = math.max(highest, y)
+        val highestPoint = math.max(highest, y)
         if (x >= xmin && x <= xmax && y >= ymin && y <= ymax)
-          Some((s, pp), (("hit_target", pp), update(p)))
+          Some((s, highestPoint), (("hit_target", highestPoint), update(p)))
         else if (y < ymin && s == "")
           None
         else
-          Some((s, pp), ((s, pp), update(p)))
+          Some((s, highestPoint), ((s, highestPoint), update(p)))
     }
-    val hd = ll.dropWhile(_._1 == "").headOption
-    hd.map(_._2)
+    ll.dropWhile(_._1 == "").headOption.map(_._2)
   }
 
   val fired = for {
