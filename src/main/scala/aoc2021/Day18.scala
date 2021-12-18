@@ -8,12 +8,9 @@ import scala.util.Using
 
 object Day18 extends App {
 
-  val input = Using(Source.fromFile("inputs/2021/18.txt"))(_.getLines()
-    .toList).get
+  val input = Using(Source.fromFile("inputs/2021/18.txt"))(_.getLines().toList).get
 
   sealed trait SNumber {
-    val isLiteral: Boolean
-
     def deepcopy(): SNumber
   }
 
@@ -33,27 +30,23 @@ object Day18 extends App {
   }
 
   case class SLiteral(var value: Int) extends SNumber {
-    override val isLiteral: Boolean = true
-
     override def deepcopy(): SNumber = SLiteral(value)
 
     override def toString: String = s"$value"
   }
 
   case class SPair(var left: SNumber, var right: SNumber) extends SNumber {
-    override def toString: String = "[" + left + "," + right + "]"
+    override def toString: String = s"[$left,$right]"
 
     override def deepcopy(): SNumber = SPair(left.deepcopy(), right.deepcopy())
-
-    override val isLiteral: Boolean = false
   }
 
-  def flatten(s: SNumber, acc: List[SLiteral] = Nil): List[SLiteral] = {
+  def flatten(s: SNumber): List[SLiteral] = {
     var list: List[SLiteral] = Nil
 
     def go(s: SNumber): Unit = {
       s match {
-        case s@SLiteral(_) => list = list ++ List(s)
+        case literal: SLiteral => list = literal :: list
         case SPair(left, right) =>
           go(left)
           go(right)
@@ -61,7 +54,7 @@ object Day18 extends App {
     }
 
     go(s)
-    list
+    list.reverse
   }
 
   def explode(n: SNumber): Boolean = {
@@ -69,7 +62,7 @@ object Day18 extends App {
 
     def go(cur: SPair, parent: SPair, isLeft: Boolean, level: Int): Boolean = {
       cur match {
-        case SPair(left, right) if level == 4 => {
+        case SPair(left, right) if level == 4 =>
           val idxLeft = flattened.zipWithIndex.find(_._1 eq left).map(_._2 - 1).filter(_ >= 0)
           idxLeft.foreach(idx => flattened(idx).value += left.asInstanceOf[SLiteral].value)
           val idxRight = flattened.zipWithIndex.find(_._1 eq right).map(_._2 + 1).filter(_ < flattened.length)
@@ -77,8 +70,7 @@ object Day18 extends App {
           if (isLeft) parent.left = SLiteral(0)
           else parent.right = SLiteral(0)
           true
-        }
-        case SPair(left, right) if level < 4 => {
+        case SPair(left, right) if level < 4 =>
           (left match {
             case pair: SPair => go(pair, cur, isLeft = true, level + 1)
             case _ => false
@@ -86,35 +78,28 @@ object Day18 extends App {
             case pair: SPair => go(pair, cur, isLeft = false, level + 1)
             case _ => false
           })
-        }
         case _ => false
       }
     }
 
-    val res = go(n.asInstanceOf[SPair], null, isLeft = false, 0)
-    println(s"after explode $n")
-    res
+    go(n.asInstanceOf[SPair], null, isLeft = false, 0)
   }
 
   def split(n: SNumber): Boolean = {
     def go(cur: SNumber, parent: SPair, isLeft: Boolean): Boolean = {
       cur match {
-        case SLiteral(v) if v >= 10 => {
+        case SLiteral(v) if v >= 10 =>
           val newPair = SPair(SLiteral(v / 2), SLiteral(v / 2 + (if (v % 2 == 1) 1 else 0)))
           if (isLeft) parent.left = newPair
           else parent.right = newPair
           true
-        }
         case _: SLiteral => false
-        case pair: SPair => {
+        case pair: SPair =>
           go(pair.left, pair, isLeft = true) || go(pair.right, pair, isLeft = false)
-        }
       }
     }
 
-    val res = go(n.asInstanceOf[SPair], null, isLeft = false)
-    println(s"after split $n")
-    res
+    go(n.asInstanceOf[SPair], null, isLeft = false)
   }
 
   @tailrec def reduce(s: SNumber): Boolean = {
@@ -124,7 +109,7 @@ object Day18 extends App {
   }
 
   def add(a: SNumber, b: SNumber): SNumber = {
-    val temp = SPair(a.deepcopy(), b.deepcopy())
+    val temp = SPair(a, b).deepcopy()
     reduce(temp)
     temp
   }
@@ -153,6 +138,5 @@ object Day18 extends App {
     (for {
       a <- inputs
       b <- inputs if a ne b
-      mag = magnitude(add(a, b))
-    } yield mag).max)
+    } yield magnitude(add(a, b))).max)
 }
