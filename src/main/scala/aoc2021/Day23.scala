@@ -15,14 +15,17 @@ object Day23 extends App {
     override val targetSideRoom: Int = 3
     override val stepEnergy: Int = 1
   }
+
   case object B extends Amphipod {
     override val targetSideRoom: Int = 5
     override val stepEnergy: Int = 10
   }
+
   case object C extends Amphipod {
     override val targetSideRoom: Int = 7
     override val stepEnergy: Int = 100
   }
+
   case object D extends Amphipod {
     override val targetSideRoom: Int = 9
     override val stepEnergy: Int = 1000
@@ -43,7 +46,7 @@ object Day23 extends App {
   val open = input.zipWithIndex.flatMap { case (row, y) =>
     row.zipWithIndex.flatMap {
       case (ch, x) if ".ABCD".contains(ch) => Some(x, y)
-      case _                               => None
+      case _ => None
     }
   }.toSet
 
@@ -63,10 +66,10 @@ object Day23 extends App {
   }
 
   case class State(
-      hall: Map[Int, Amphipod], // x-pos -> amphipod
-      rooms: Map[Int, List[Amphipod]], // x-pos -> pods in room
-      sideRoomSize: Int
-  ) {
+                    hall: Map[Int, Amphipod], // x-pos -> amphipod
+                    rooms: Map[Int, List[Amphipod]], // x-pos -> pods in room
+                    sideRoomSize: Int
+                  ) {
 
     assert(rooms.values.forall(_.size <= sideRoomSize))
 
@@ -119,7 +122,7 @@ object Day23 extends App {
           hall = hall.filter { case (x, _) =>
             x != move.from.x
           },
-          rooms = rooms.map { case z @ (x, as) =>
+          rooms = rooms.map { case z@(x, as) =>
             if (x == move.to.x) (x, move.a :: as)
             else z
           }
@@ -128,7 +131,7 @@ object Day23 extends App {
         // side room into hall
         copy(
           hall = hall.updated(move.to.x, move.a),
-          rooms = rooms.map { case z @ (x, as) =>
+          rooms = rooms.map { case z@(x, as) =>
             if (x == move.from.x) (x, as.tail)
             else z
           }
@@ -158,7 +161,7 @@ object Day23 extends App {
         return energy
       }
       visited += v
-      for { (w, deltaE) <- v.neighs if !visited(w) } {
+      for {(w, deltaE) <- v.neighs if !visited(w)} {
         val newEnergy = energy + deltaE
         if (newEnergy < energies.getOrElse(w, Int.MaxValue)) {
           energies(w) = newEnergy
@@ -169,7 +172,7 @@ object Day23 extends App {
     -1
   }
 
-  val initialState = State(
+  val part1 = State(
     hall = Map(),
     rooms = startPos.groupBy(_._2.x).map { case (x, set) =>
       (x, set.toList.sortBy(_._2.y).map(_._1))
@@ -177,10 +180,10 @@ object Day23 extends App {
     sideRoomSize = 2
   )
 
-  println(dijkstra(initialState))
+  println(dijkstra(part1))
 
-  val part2 = initialState.copy(
-    rooms = initialState.rooms.map { case (x, as) =>
+  val part2 = part1.copy(
+    rooms = part1.rooms.map { case (x, as) =>
       x match {
         case 3 => (x, as.head :: List(D, D) ++ as.tail)
         case 5 => (x, as.head :: List(C, B) ++ as.tail)
