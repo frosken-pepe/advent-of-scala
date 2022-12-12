@@ -1,12 +1,13 @@
 package aoc2022
 
 import scala.annotation.tailrec
+import scala.collection.immutable.Queue
 import scala.io.Source
 import scala.util.Using
 
 object Day11 extends App {
 
-  case class Monkey(id: Int, items: List[Long], op: Long => Long, test: Long, ifTrue: Int, ifFalse: Int, inspectionCount: Long)
+  case class Monkey(id: Int, items: Queue[Long], op: Long => Long, test: Long, ifTrue: Int, ifFalse: Int, inspectionCount: Long)
 
   def parseOp(op: String): Long => Long = op match {
     case "old * old" => old => old * old
@@ -20,7 +21,7 @@ object Day11 extends App {
         case s"Monkey $id:" => id.toInt
       },
       items = ss(1) match {
-        case s"Starting items: $items" => items.split(",").map(_.trim).map(_.toLong).toList
+        case s"Starting items: $items" => Queue.from(items.split(",").map(_.trim).map(_.toLong))
       },
       op = ss(2) match {
         case s"Operation: new = $op" => parseOp(op)
@@ -38,35 +39,39 @@ object Day11 extends App {
     )
   }
 
-  val monkeys = Using(Source.fromFile("inputs/2022/11.txt"))(_.getLines().mkString("\n").split("\n\n").map(_.split("\n").toList)).get
-    .map(strings => strings.map(_.trim))
+  val monkeys: Map[Int, Monkey] = Using(Source.fromFile("inputs/2022/11.txt"))(_.getLines().mkString("\n").split("\n\n").map(_.split("\n").toList)).get
+    .map(_.map(_.trim))
     .map(monkey)
-    .toList
+    .map(m => m.id -> m)
+    .toMap
 
-  def throwTo(monkeys: List[Monkey], target: Int, worry: Long): List[Monkey] = {
-    monkeys.map(m => if (m.id == target) m.copy(items = m.items ++ List(worry)) else m)
+  def throwTo(monkeys: Map[Int, Monkey], target: Int, item: Long): Map[Int, Monkey] = {
+    monkeys.updated(target, monkeys(target).copy(items = monkeys(target).items :+ item))
   }
 
   @tailrec
-  def turn(monkey: Monkey, monkeys: List[Monkey], divisor: Int): List[Monkey] = {
-    if (monkey.items.isEmpty) monkeys.map(m => if (m.id == monkey.id) monkey else m)
+  def turn(monkey: Monkey, monkeys: Map[Int, Monkey], divisor: Int): Map[Int, Monkey] = {
+    if (monkey.items.isEmpty) monkeys.updated(monkey.id, monkey)
     else {
       val item = monkey.op(monkey.items.head) / divisor
       val target = if (item % monkey.test == 0) monkey.ifTrue else monkey.ifFalse
       val newMonkey = monkey.copy(items = monkey.items.tail, inspectionCount = monkey.inspectionCount + 1)
-      turn(newMonkey, throwTo(monkeys, target, item % monkeys.map(_.test).product), divisor)
+      turn(newMonkey, throwTo(monkeys, target, item % monkeys.values.map(_.test).product), divisor)
     }
   }
 
-  def round(divisor: Int)(monkeys: List[Monkey]): List[Monkey] = {
-    val turns = monkeys.map(_.id)
+  val turns = monkeys.values.map(_.id).toList.sorted
+
+  def round(divisor: Int)(monkeys: Map[Int, Monkey]): Map[Int, Monkey] = {
     turns.foldLeft(monkeys) {
-      case (monkeys, id) => turn(monkeys.find(_.id == id).get, monkeys, divisor)
+      case (monkeys, id) => turn(monkeys(id), monkeys, divisor)
     }
   }
 
   def monkeyBusiness(rounds: Int, divisor: Int) = {
     LazyList.iterate(monkeys)(round(divisor)).drop(rounds).head
+      .values
+      .toList
       .map(_.inspectionCount)
       .sorted
       .reverse
