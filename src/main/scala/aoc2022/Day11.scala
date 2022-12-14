@@ -46,8 +46,12 @@ object Day11 extends App {
     .toMap
 
   def throwTo(monkeys: Map[Int, Monkey], target: Int, item: Long): Map[Int, Monkey] = {
-    monkeys.updated(target, monkeys(target).copy(items = monkeys(target).items :+ item))
+    monkeys.updatedWith(target) {
+      case Some(monkey) => Some(monkey.copy(items = monkey.items :+ item))
+    }
   }
+
+  val multiple = monkeys.values.map(_.test).product
 
   @tailrec
   def turn(monkey: Monkey, monkeys: Map[Int, Monkey], divisor: Int): Map[Int, Monkey] = {
@@ -56,7 +60,7 @@ object Day11 extends App {
       val item = monkey.op(monkey.items.head) / divisor
       val target = if (item % monkey.test == 0) monkey.ifTrue else monkey.ifFalse
       val newMonkey = monkey.copy(items = monkey.items.tail, inspectionCount = monkey.inspectionCount + 1)
-      turn(newMonkey, throwTo(monkeys, target, item % monkeys.values.map(_.test).product), divisor)
+      turn(newMonkey, throwTo(monkeys, target, item % multiple), divisor)
     }
   }
 
