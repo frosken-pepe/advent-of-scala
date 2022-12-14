@@ -2,68 +2,55 @@ package aoc2022
 
 import scala.annotation.tailrec
 import scala.io.Source
-import scala.math.abs
 import scala.util.Using
 
 object Day09 extends App {
 
-  sealed trait Dir
-
-  case class R(amt: Int) extends Dir
-
-  case class U(amt: Int) extends Dir
-
-  case class L(amt: Int) extends Dir
-
-  case class D(amt: Int) extends Dir
+  case class Dir(amt: Int, dx: Int, dy: Int) {
+    def decr: Dir = copy(amt = amt - 1)
+  }
 
   val input = Using(Source.fromFile("inputs/2022/09.txt"))(_.getLines().map {
-    case s"R $x" => R(x.toInt)
-    case s"U $x" => U(x.toInt)
-    case s"L $x" => L(x.toInt)
-    case s"D $x" => D(x.toInt)
+    case s"R $x" => Dir(x.toInt, 1, 0)
+    case s"U $x" => Dir(x.toInt, 0, -1)
+    case s"L $x" => Dir(x.toInt, -1, 0)
+    case s"D $x" => Dir(x.toInt, 0, 1)
   }.toList).get
 
-  def dist(head: (Int, Int), tail: (Int, Int)): Int = scala.math.max(abs(head._1 - tail._1), abs(head._2 - tail._2))
-
-  def manhattan(head: (Int, Int), tail: (Int, Int)): Int = abs(head._1 - tail._1) + abs(head._2 - tail._2)
-
-  def neighs(x: Int, y: Int): Set[(Int, Int)] = {
-    for {
-      _ <- Set(())
-      xx <- x - 1 to x + 1
-      yy <- y - 1 to y + 1
-      if xx != x || yy != y
-    } yield (xx, yy)
+  def follow(head: (Int, Int), neck: (Int, Int)): (Int, Int) = {
+    val dx = head._1 - neck._1
+    val dy = head._2 - neck._2
+    if (dx.abs > 1 || dy.abs > 1) (dx.sign, dy.sign) else (0, 0)
   }
 
-  def follow(head: (Int, Int), tail: (Int, Int)): (Int, Int) = {
-    val n = neighs(tail._1, tail._2)
-    val newTail = n.filter(p => p._1 == head._1 || p._2 == head._2)
-      .find(t => dist(t, head) == 1)
-      .getOrElse(n.minBy(x => manhattan(x, head)))
-    (newTail._1 - tail._1, newTail._2 - tail._2)
-  }
+  type Snake = List[(Int, Int)]
 
-  def move(pos: List[(Int, Int)], dx: Int, dy: Int): List[(Int, Int)] = {
-    val newHead = (pos.head._1 + dx, pos.head._2 + dy)
-    if (pos.tail.isEmpty || dist(newHead, pos.tail.head) <= 1) newHead :: pos.tail
-    else {
-      val (dx, dy) = follow(newHead, pos.tail.head)
-      newHead :: move(pos.tail, dx, dy)
+  def step(snake: Snake, dx: Int, dy: Int): (Snake, (Int, Int)) = {
+    @tailrec
+    def go(todo: Snake, done: Snake, dx: Int, dy: Int): (Snake, (Int, Int)) = todo match {
+      case Nil => (done.reverse, (done.head._1, done.head._2))
+      case head :: Nil => go(Nil, (head._1 + dx, head._2 + dy) :: done, 0, 0)
+      case head :: neck :: _ =>
+        val moved = (head._1 + dx, head._2 + dy)
+        val delta = follow(moved, neck)
+        go(todo.tail, moved :: done, delta._1, delta._2)
     }
+
+    go(snake, Nil, dx, dy)
   }
 
   @tailrec
-  def move(pos: List[(Int, Int)], dir: Dir, visited: Set[(Int, Int)]): (List[(Int, Int)], Set[(Int, Int)]) = dir match {
-    case R(amt) if amt > 0 => move(move(pos, 1, 0), R(amt - 1), visited + pos.last)
-    case U(amt) if amt > 0 => move(move(pos, 0, -1), U(amt - 1), visited + pos.last)
-    case L(amt) if amt > 0 => move(move(pos, -1, 0), L(amt - 1), visited + pos.last)
-    case D(amt) if amt > 0 => move(move(pos, 0, 1), D(amt - 1), visited + pos.last)
-    case _ => (pos, visited + pos.last)
+  def move(snake: Snake, z: Dir, visited: Set[(Int, Int)]): (Snake, Set[(Int, Int)]) =
+    if (z.amt > 0) step(snake, z.dx, z.dy) match {
+      case (moved, last) => move(moved, z.decr, visited + last)
+    }
+    else (snake, visited)
+
+  def snake(size: Int): Int = {
+    input.foldLeft((List.fill(size)((0, 0)), Set.empty[(Int, Int)])) { case ((pos, visited), m) => move(pos, m, visited) }._2.size
   }
 
-  println(input.foldLeft((List.fill(2)((0, 0)), Set.empty[(Int, Int)])) { case ((pos, set), m) => move(pos, m, set) }._2.size)
+  println(snake(2))
 
-  println(input.foldLeft((List.fill(10)((0, 0)), Set.empty[(Int, Int)])) { case ((pos, set), m) => move(pos, m, set) }._2.size)
+  println(snake(10))
 }
