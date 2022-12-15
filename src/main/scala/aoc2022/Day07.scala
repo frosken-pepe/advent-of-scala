@@ -6,28 +6,28 @@ import scala.util.Using
 
 object Day07 extends App {
 
-  private sealed trait Content
+  sealed trait Content
 
-  private case class File(name: String, size: Long) extends Content
+  case class File(name: String, size: Long) extends Content
 
-  private case class Dir(name: String) extends Content
+  case class Dir(name: String) extends Content
 
-  private sealed trait Command
+  sealed trait Command
 
-  private case class Ls(output: List[Content]) extends Command
+  case class Ls(output: List[Content]) extends Command
 
-  private case class Cd(target: String) extends Command
+  case class Cd(target: String) extends Command
 
-  private case class Output(content: Content) extends Command
+  case class Output(content: Content) extends Command
 
-  private def command(s: String): Command = s match {
+  def command(s: String): Command = s match {
     case s"$x cd $target" if x == "$" => Cd(target)
     case s"$x ls" if x == "$" => Ls(Nil)
     case s"dir $dirname" => Output(Dir(dirname))
     case s"$size $fileName" => Output(File(fileName, size.toInt))
   }
 
-  private val session = Using(Source.fromFile("inputs/2022/07.txt"))(_.getLines().toList)
+  val session = Using(Source.fromFile("inputs/2022/07.txt"))(_.getLines().toList)
     .get
     .map(command)
     .foldLeft(List.empty[Command]) {
@@ -39,10 +39,10 @@ object Day07 extends App {
     }
     .reverse
 
-  private case class Directory(size: Long, subdirs: List[String])
+  case class Directory(size: Long, subdirs: List[String])
 
   @tailrec
-  private def scan(output: List[Content], dir: Directory): Directory = {
+  def scan(output: List[Content], dir: Directory): Directory = {
     if (output.isEmpty) dir
     else output.head match {
       case File(_, size) => scan(output.tail, dir.copy(size = dir.size + size))
@@ -50,36 +50,34 @@ object Day07 extends App {
     }
   }
 
-  private def changeDir(target: String, currentDir: List[String]) = target match {
-    case "/" => Nil
-    case ".." => currentDir.tail
-    case x => x :: currentDir
+  case class Path(parts: List[String]) {
+    def cd(path: String): Path = path match {
+      case "/" => Path(Nil)
+      case ".." => Path(parts.tail)
+      case x => Path(x :: parts)
+    }
   }
 
   @tailrec
-  private def traverse(todo: List[Command], currentDir: List[String], directories: Map[List[String], Directory]): Map[List[String], Directory] = {
+  def traverse(todo: List[Command], currentDir: Path, directories: Map[Path, Directory]): Map[Path, Directory] = {
     if (todo.isEmpty) directories
     else todo.head match {
       case Ls(output) =>
         val scanned = scan(output, Directory(0, Nil))
         traverse(todo.tail, currentDir, directories.updated(currentDir, scanned))
       case Cd(target) =>
-        traverse(todo.tail, changeDir(target, currentDir), directories)
+        traverse(todo.tail, currentDir.cd(target), directories)
       case Output(_) => throw new IllegalArgumentException()
     }
   }
 
-  private val dirs: Map[List[String], Directory] = traverse(session, Nil, Map())
+  val dirs: Map[Path, Directory] = traverse(session, Path(Nil), Map())
 
-  private def totalSize(dir: List[String]): Long = {
+  def totalSize(dir: Path): Long = {
     @tailrec
-    def go(todo: List[List[String]], acc: Long): Long = {
-      if (todo.isEmpty) acc
-      else {
-        val cur = todo.head
-        val subdirs = dirs(cur).subdirs.map(sub => sub :: cur)
-        go(subdirs ++ todo.tail, acc + dirs(cur).size)
-      }
+    def go(todo: List[Path], acc: Long): Long = todo match {
+      case Nil => acc
+      case cur :: tail => go(dirs(cur).subdirs.map(cur.cd) ++ tail, acc + dirs(cur).size)
     }
 
     go(List(dir), 0)
@@ -87,11 +85,11 @@ object Day07 extends App {
 
   println(dirs.keys.toList.map(totalSize).filter(_ <= 100000).sum)
 
-  private val totalSpace = 70000000
-  private val spaceNeeded = 30000000
-  private val used = totalSize(Nil)
-  private val unused = totalSpace - used
-  private val needToRemove = spaceNeeded - unused
+  val totalSpace = 70000000
+  val spaceNeeded = 30000000
+  val used = totalSize(Path(Nil))
+  val unused = totalSpace - used
+  val needToRemove = spaceNeeded - unused
 
   println(dirs.keys.toList.map(totalSize).filter(_ >= needToRemove).min)
 }
