@@ -6,22 +6,20 @@ import scala.util.Using
 
 object Day13 extends App {
 
-  val input = Using(Source.fromFile("inputs/2022/13.txt"))(_.getLines().toList).get.sliding(3, 3).toList
-
   sealed trait Packet
 
-  case class IntegerPacket(value: Int) extends Packet
+  case class IntPacket(value: Int) extends Packet
 
   case class ListPacket(values: List[Packet]) extends Packet
 
-  def integer(s: String): Option[(IntegerPacket, String)] = {
+  def integer(s: String): Option[(IntPacket, String)] = {
     val digits = s.takeWhile(_.isDigit)
     if (digits.isEmpty) None
-    else Some(IntegerPacket(digits.toInt), s.drop(digits.length))
+    else Some(IntPacket(digits.toInt), s.drop(digits.length))
   }
 
-  def literal(s: String, lit: String): Option[(String, String)] = {
-    if (s.startsWith(lit)) Some(lit, s.drop(lit.length))
+  def literal(s: String, lit: String): Option[String] = {
+    if (s.startsWith(lit)) Some(s.drop(lit.length))
     else None
   }
 
@@ -34,46 +32,36 @@ object Day13 extends App {
 
   def list(s: String): Option[(ListPacket, String)] = {
     for {
-      (_, r0) <- literal(s, "[")
+      r0 <- literal(s, "[")
       (packets, r1) = commaSeparatedPackets(r0, Nil)
-      (_, rest) <- literal(r1, "]")
+      rest <- literal(r1, "]")
     } yield (ListPacket(packets), rest)
   }
 
-  def integerOrList(s: String): Option[(Packet, String)] = {
-    integer(s).orElse(list(s))
-  }
+  def integerOrList(s: String): Option[(Packet, String)] = integer(s).orElse(list(s))
 
-  def parse(s: String): List[Packet] = {
-    list(s).get._1.values
-  }
+  def parse(s: String): List[Packet] = list(s).get._1.values
+
+  val input: List[(List[Packet], List[Packet])] = Using(Source.fromFile("inputs/2022/13.txt"))(_.getLines().toList)
+    .get.sliding(3, 3).toList.map { case a :: b :: _ => (parse(a), parse(b)) }
 
   def isRightOrder(a: List[Packet], b: List[Packet]): Option[Boolean] = (a, b) match {
     case (Nil, Nil) => None
     case (Nil, _) => Some(true)
     case (_, Nil) => Some(false)
-    case (IntegerPacket(ha) :: ta, IntegerPacket(hb) :: tb) => if (ha != hb) Some(ha < hb) else isRightOrder(ta, tb)
+    case (IntPacket(ha) :: ta, IntPacket(hb) :: tb) => if (ha != hb) Some(ha < hb) else isRightOrder(ta, tb)
     case (ListPacket(ha) :: ta, ListPacket(hb) :: tb) => isRightOrder(ha, hb).orElse(isRightOrder(ta, tb))
-    case ((ha: IntegerPacket) :: ta, (hb: ListPacket) :: tb) => isRightOrder(ListPacket(List(ha)) :: ta, hb :: tb).orElse(isRightOrder(ta, tb))
-    case ((ha: ListPacket) :: ta, (hb: IntegerPacket) :: tb) => isRightOrder(ha :: ta, ListPacket(List(hb)) :: tb).orElse(isRightOrder(ta, tb))
+    case ((ha: IntPacket) :: ta, (hb: ListPacket) :: tb) => isRightOrder(ListPacket(List(ha)) :: ta, hb :: tb).orElse(isRightOrder(ta, tb))
+    case ((ha: ListPacket) :: ta, (hb: IntPacket) :: tb) => isRightOrder(ha :: ta, ListPacket(List(hb)) :: tb).orElse(isRightOrder(ta, tb))
   }
-
-  println(
-    input.zipWithIndex.map {
-      case (pair, idx) if isRightOrder(parse(pair.head), parse(pair.tail.head)).get => idx + 1
-      case _ => 0
-    }.sum)
 
   def lt(a: List[Packet], b: List[Packet]): Boolean = isRightOrder(a, b).get
 
-  val dividers: List[List[Packet]] = List(
-    List(ListPacket(List(IntegerPacket(2)))),
-    List(ListPacket(List(IntegerPacket(6)))),
-  )
+  println(input.zipWithIndex.filter(z => lt(z._1._1, z._1._2)).map(_._2 + 1).sum)
 
-  val packets: List[List[Packet]] = dividers ++ input.flatMap {
-    case a :: b :: _ => List(parse(a), parse(b))
-  }
+  val dividers: List[List[Packet]] = List("[[2]]", "[[6]]").map(parse)
+
+  val packets: List[List[Packet]] = dividers ++ input.flatMap(a => List(a._1, a._2))
 
   val sorted = packets.sortWith(lt)
 
