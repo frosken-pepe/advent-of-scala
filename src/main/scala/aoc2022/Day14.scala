@@ -43,17 +43,22 @@ object Day14 extends App {
 
   case class State(moving: Option[Vertex], settled: Set[Vertex])
 
+  private def spots(moving: (Int, Int)): List[Vertex] = {
+    List((moving._1, moving._2 + 1), (moving._1 - 1, moving._2 + 1), (moving._1 + 1, moving._2 + 1))
+  }
+
+  private def move(moving: (Int, Int), settled: Set[(Int, Int)]): Option[Vertex] = {
+    spots(moving).find(loc => !settled(loc) && !isRock(loc))
+  }
+
   @tailrec
   def settle(isFinal: Vertex => Boolean)(state: State): State = state match {
     case State(None, _) => state
-    case State(Some(moving), settled) =>
-      val attempts: List[Vertex] = List((moving._1, moving._2 + 1), (moving._1 - 1, moving._2 + 1), (moving._1 + 1, moving._2 + 1))
-      val newLoc = attempts.find(loc => !settled(loc) && !isRock(loc))
-      newLoc match {
-        case Some(vertex) if !isFinal(vertex) => settle(isFinal)(State(moving = Some(vertex), settled))
-        case None => settle(isFinal)(State(None, settled + moving))
-        case _ => settle(isFinal)(State(None, settled))
-      }
+    case State(Some(moving), settled) => move(moving, settled) match {
+      case Some(vertex) if !isFinal(vertex) => settle(isFinal)(State(moving = Some(vertex), settled))
+      case None => settle(isFinal)(State(None, settled + moving))
+      case _ => settle(isFinal)(State(None, settled))
+    }
   }
 
   def addMoreSand(isFinal: Vertex => Boolean)(state: State): State = {
