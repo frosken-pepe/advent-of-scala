@@ -1,64 +1,55 @@
 package aoc2022
 
+import com.sun.media.jfxmedia.events.NewFrameEvent
+
 import scala.io.Source
 import scala.util.Using
 
 object Day12 extends App {
 
-  val input: List[String] = Using(Source.fromFile("inputs/2022/12.txt"))(_.getLines().toList).get
+  val input: Map[(Int, Int), Char] = Using(Source.fromFile("inputs/2022/12.txt"))(_.getLines().toList).get
+    .zipWithIndex.flatMap { case (str, row) => str.zipWithIndex.map { case (ch, col) => (row, col) -> ch } }.toMap
 
-  val heightmap: List[List[Int]] = input.map(_.toList.map {
+  def find(ch: Set[Char]): Set[(Int, Int)] = input.filter(entry => ch(entry._2)).keySet
+
+  def actualHeight(ch: Char): Char = ch match {
     case 'S' => 'a'
     case 'E' => 'z'
-    case x => x
-  }.map(_ - 'a'))
+    case c => c
+  }
 
-  val locs = input.zipWithIndex.flatMap {
-    case (str, row) => str.zipWithIndex.flatMap {
-      case (ch, col) if ch == 'S' || ch == 'E' => Some(ch -> (row, col))
-      case _ => None
-    }
-  }.toMap
-
-  val startLoc = locs('S')
-  val endLoc = locs('E')
-  val width = heightmap.head.size
-  val height = heightmap.size
+  def height(row: Int, col: Int): Int = actualHeight(input(row, col)) - 'a'
 
   def neighs(row: Int, col: Int): Set[(Int, Int)] = {
     for {
       dx <- Set(-1, 0, 1)
-      dy <- Set(-1, 0, 1)
-      if dx == 0 || dy == 0
-      nc = col + dx if nc >= 0 && nc < width
-      nr = row + dy if nr >= 0 && nr < height
-      if heightmap(nr)(nc) <= heightmap(row)(col) + 1
+      dy <- Set(-1, 0, 1) if dx == 0 ^ dy == 0
+      nc = col + dx
+      nr = row + dy
+      if input.contains(nr, nc) && height(nr, nc) <= height(row, col) + 1
     } yield (nr, nc)
   }
 
-  case class State(frontier: Set[(Int, Int)], visited: Set[(Int, Int)])
+  case class State(frontier: Set[(Int, Int)], visited: Set[(Int, Int)]) {
+    def updated(newFrontier: Set[(Int, Int)]): State = {
+      copy(frontier = newFrontier, visited = visited ++ newFrontier)
+    }
+  }
 
-  def expand(state: State): State = {
-    val newFrontier = for {
+  def expand(state: State): State = state.updated(
+    for {
       (row, col) <- state.frontier
-      (nr, nc) <- neighs(row, col)
-      if !state.visited((nr, nc))
+      (nr, nc) <- neighs(row, col) if !state.visited((nr, nc))
     } yield (nr, nc)
-    State(newFrontier, state.visited ++ newFrontier)
-  }
+  )
+
+  val endLoc = find(Set('E')).head
 
   def shortestPath(start: Set[(Int, Int)]): Int = {
-    LazyList.iterate(State(start, Set()))(expand).takeWhile(!_.visited(endLoc)).size
+    LazyList.iterate(State(start, Set()))(expand).zipWithIndex.dropWhile(x => !x._1.frontier(endLoc)).head._2
   }
 
-  println(shortestPath(Set(startLoc)))
+  println(shortestPath(find(Set('S'))))
 
-  val startLocs = input.zipWithIndex.flatMap {
-    case (str, row) => str.zipWithIndex.flatMap {
-      case (ch, col) if ch == 'S' || ch == 'a' => Some((row, col))
-      case _ => None
-    }
-  }.toSet
-
-  println(shortestPath(startLocs))
+  println(shortestPath(find(Set('S', 'a'))))
 }
