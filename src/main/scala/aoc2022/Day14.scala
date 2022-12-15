@@ -27,28 +27,24 @@ object Day14 extends App {
     Set(to) ++ LazyList.iterate(from)(vert => (vert._1 + dx, vert._2 + dy)).takeWhile(_ != to).toSet
   }
 
-  def rock(path: Path): Set[Vertex] = {
-    path.zip(path.drop(1)).flatMap { case (a, b) => segment(a, b) }.toSet
-  }
-
-  val rocks = input.flatMap(rock)
+  val rocks: Set[Vertex] = input.flatMap(path => path.zip(path.drop(1)).flatMap { case (a, b) => segment(a, b) }.toSet)
 
   val source: Vertex = (500, 0)
 
   val floor = rocks.map(_._2).max + 2
 
-  def isRock(p: (Int, Int)): Boolean = p match {
+  def rock(vertex: (Int, Int)): Boolean = vertex match {
     case (x, y) => y == floor || rocks(x, y)
   }
 
   case class State(moving: Option[Vertex], settled: Set[Vertex])
 
-  private def spots(moving: (Int, Int)): List[Vertex] = {
-    List((moving._1, moving._2 + 1), (moving._1 - 1, moving._2 + 1), (moving._1 + 1, moving._2 + 1))
+  private def spots(vertex: Vertex): List[Vertex] = vertex match {
+    case (x, y) => List((x, y + 1), (x - 1, y + 1), (x + 1, y + 1))
   }
 
-  private def move(moving: (Int, Int), settled: Set[(Int, Int)]): Option[Vertex] = {
-    spots(moving).find(loc => !settled(loc) && !isRock(loc))
+  private def move(moving: Vertex, settled: Set[Vertex]): Option[Vertex] = {
+    spots(moving).find(loc => !settled(loc) && !rock(loc))
   }
 
   @tailrec
