@@ -49,15 +49,13 @@ object Day13 extends App {
   }
 
   def isRightOrder(a: List[Packet], b: List[Packet]): Option[Boolean] = (a, b) match {
-    case ((ha: IntegerPacket) :: ta, (hb: IntegerPacket) :: tb) =>
-      if (ha.value != hb.value) Some(ha.value < hb.value)
-      else isRightOrder(ta, tb)
-    case ((ha: ListPacket) :: ta, (hb: ListPacket) :: tb) => isRightOrder(ha.values, hb.values).orElse(isRightOrder(ta, tb))
-    case (Nil, _ :: _) => Some(true)
-    case (_ :: _, Nil) => Some(false)
+    case (Nil, Nil) => None
+    case (Nil, _) => Some(true)
+    case (_, Nil) => Some(false)
+    case (IntegerPacket(ha) :: ta, IntegerPacket(hb) :: tb) => if (ha != hb) Some(ha < hb) else isRightOrder(ta, tb)
+    case (ListPacket(ha) :: ta, ListPacket(hb) :: tb) => isRightOrder(ha, hb).orElse(isRightOrder(ta, tb))
     case ((ha: IntegerPacket) :: ta, (hb: ListPacket) :: tb) => isRightOrder(ListPacket(List(ha)) :: ta, hb :: tb).orElse(isRightOrder(ta, tb))
     case ((ha: ListPacket) :: ta, (hb: IntegerPacket) :: tb) => isRightOrder(ha :: ta, ListPacket(List(hb)) :: tb).orElse(isRightOrder(ta, tb))
-    case (Nil, Nil) => None
   }
 
   println(
