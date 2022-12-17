@@ -53,7 +53,7 @@ object Day16 extends App {
     case (a, b, d) => List((a, b) -> d, (b, a) -> d)
   }.toMap
 
-  def actions(state: State, time: Int, endTime: Int): Set[Action] = {
+  def actions(state: State, time: Int, endTime: Int, meaningfulValves: Set[String]): Set[Action] = {
     if (state.open == meaningfulValves) Set()
     else if (!state.open(state.me) && valves(state.me).rate > 0) Set(Open)
     else meaningfulValves
@@ -64,16 +64,23 @@ object Day16 extends App {
       .toSet
   }
 
-  def backtrack(time: Int, current: State, pressure: Int, visited: Set[State], endTime: Int): Int = {
+  def backtrack(time: Int, current: State, pressure: Int, visited: Set[State], endTime: Int, meaningfulValves: Set[String]): Int = {
     if (time == endTime) pressure
-    else actions(current, time, endTime).map { a => (a, current.applyAction(a)) }
+    else actions(current, time, endTime, meaningfulValves).map { a => (a, current.applyAction(a)) }
       .filter { case (_, state) => !visited(state) }
       .map {
-        case (Open, s) => backtrack(time + 1, s, pressure + valves(current.me).rate * (30 - time - 1), visited + s, endTime)
-        case (Move(_, deltaT), s) => backtrack(time + deltaT, s, pressure, visited + s, endTime)
+        case (Open, s) => backtrack(time + 1, s, pressure + valves(current.me).rate * (endTime - time - 1), visited + s, endTime, meaningfulValves)
+        case (Move(_, deltaT), s) => backtrack(time + deltaT, s, pressure, visited + s, endTime, meaningfulValves)
       }
       .foldLeft(pressure)(math.max)
   }
 
-  println(backtrack(0, State("AA", Set()), 0, Set(), 30))
+  println(backtrack(0, State("AA", Set()), 0, Set(), 30, meaningfulValves))
+
+  println(
+    (for {
+      me <- meaningfulValves.subsets()
+      elephant = meaningfulValves -- me
+    } yield backtrack(0, State("AA", Set()), 0, Set(), 26, me) +
+      backtrack(0, State("AA", Set()), 0, Set(), 26, elephant)).max)
 }
