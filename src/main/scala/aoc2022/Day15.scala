@@ -24,27 +24,27 @@ object Day15 extends App {
     reading._1._1 - delta to reading._1._1 + delta
   }
 
-  def limit(range: Range.Inclusive, lo: Int, hi: Int): Range.Inclusive = {
-    if (range.isEmpty) range
-    else List(lo, range.min).max to List(hi, range.max).min
+  def limit(lo: Int, hi: Int)(range: Range.Inclusive): Option[Range.Inclusive] = {
+    if (range.isEmpty) None
+    else Some(math.max(lo, range.min) to math.min(hi, range.max)).filter(_.nonEmpty)
   }
 
   @tailrec
   def mergeAdjacent(todo: List[Range.Inclusive], acc: List[Range.Inclusive]): List[Range.Inclusive] = todo match {
     case Nil => acc.reverse
     case hd :: tl if acc.isEmpty && hd.nonEmpty => mergeAdjacent(tl, hd :: acc)
-    case hd :: tl if acc.head.max + 1 >= hd.min => mergeAdjacent(tl, (acc.head.min to List(acc.head.max, hd.max).max) :: acc.tail)
+    case hd :: tl if acc.head.max + 1 >= hd.min => mergeAdjacent(tl, (acc.head.min to math.max(acc.head.max, hd.max)) :: acc.tail)
     case hd :: tl => mergeAdjacent(tl, hd :: acc)
   }
 
+  def foldAll(lo: Int, hi: Int)(y: Int): List[Range.Inclusive] = {
+    input.foldLeft(List.empty[Range.Inclusive]) {
+      case (ranges, reading) => limit(lo, hi)(excludedRange(y, reading)).map(_ :: ranges).getOrElse(ranges)
+    }
+  }
+
   def disjointRanges(lo: Int, hi: Int)(y: Int): List[Range.Inclusive] = {
-    mergeAdjacent(
-      input.foldLeft(List.empty[Range.Inclusive]) {
-        case (ranges, reading) =>
-          val range = limit(excludedRange(y, reading), lo, hi)
-          if (range.isEmpty) ranges
-          else range :: ranges
-      }.sortBy(_.min), Nil)
+    mergeAdjacent(foldAll(lo, hi)(y).sortBy(_.min), Nil)
   }
 
   def tuningFrequency(size: Int): BigInt = {
