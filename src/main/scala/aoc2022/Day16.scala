@@ -45,13 +45,12 @@ object Day16 extends App {
     }.head._2
   }
 
-  val shortestPaths = (for {
+  val shortestPaths: Map[(String, String), Int] = (for {
     a <- nonZeroValves + "AA"
-    b <- nonZeroValves
-    if a < b
-  } yield (a, b, shortestPath(a, b))).flatMap {
-    case (a, b, d) => List((a, b) -> d, (b, a) -> d)
-  }.toMap
+    b <- nonZeroValves if a < b
+    d = shortestPath(a, b)
+    e <- List((a, b) -> d, (b, a) -> d)
+  } yield e).toMap
 
   def actions(state: State, endTime: Int): Set[Action] = {
     if (state.unopened.isEmpty) Set()
