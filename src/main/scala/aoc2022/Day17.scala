@@ -89,15 +89,9 @@ object Day17 extends App {
     else field.copy(currentPiece = Some(shifted))
   }
 
-  def step(field: Field): Field = {
-    field.currentPiece match {
-      case Some(_) => fall(moveSideways(field))
-      case _ => field
-    }
-  }
 
   def piece(field: Field): Field = {
-    LazyList.iterate(spawn(field))(step).dropWhile(_.currentPiece.isDefined).head
+    LazyList.iterate(spawn(field))(moveSideways _ andThen fall).dropWhile(_.currentPiece.isDefined).head
   }
 
   val field = Field(None, Set.empty, -1, 0, 0)
