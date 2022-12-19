@@ -16,7 +16,7 @@ object Day16 extends App {
   val valves: Map[String, Valve] = Using(Source.fromFile("inputs/2022/16.txt"))(_.getLines().map(valve)
     .map(valve => valve.id -> valve).toMap).get
 
-  case class State(me: String, open: Set[String], unopened: Set[String], time: Int)
+  case class State(me: String, open: Set[String], unopened: Set[String], time: Int, pressure: Int)
 
   sealed trait Action
 
@@ -24,9 +24,15 @@ object Day16 extends App {
 
   case class Move(target: String, time: Int) extends Action
 
-  def action(state: State, action: Action): State = action match {
-    case Open => state.copy(open = state.open + state.me, unopened = state.unopened - state.me, time = state.time + 1)
-    case Move(target, dt) => state.copy(me = target, time = state.time + dt)
+  def action(state: State, action: Action, endTime: Int): State = {
+    action match {
+      case Open => state.copy(
+        open = state.open + state.me,
+        unopened = state.unopened - state.me,
+        time = state.time + 1,
+        pressure = state.pressure + valves(state.me).rate * (endTime - state.time - 1))
+      case Move(target, dt) => state.copy(me = target, time = state.time + dt)
+    }
   }
 
   val nonZeroValves = valves.values.filter(_.rate > 0).map(_.id).toSet
@@ -61,18 +67,19 @@ object Day16 extends App {
       .toSet
   }
 
-  def backtrack(state: State, pressure: Int, endTime: Int): Int = {
-    if (state.time == endTime) pressure
-    else actions(state, endTime).map {
-      case Open => backtrack(action(state, Open), pressure + valves(state.me).rate * (endTime - state.time - 1), endTime)
-      case Move(to, dt) => backtrack(action(state, Move(to, dt)), pressure, endTime)
-    }.foldLeft(pressure)(math.max)
+  def backtrack(state: State, endTime: Int): Int = {
+    if (state.time == endTime) state.pressure
+    else actions(state, endTime)
+      .map(action(state, _, endTime))
+      .map(backtrack(_, endTime))
+      .foldLeft(state.pressure)(math.max)
   }
 
-  println(backtrack(State("AA", Set(), nonZeroValves, 0), 0, 30))
+  println(backtrack(State("AA", Set(), nonZeroValves, 0, 0), 30))
+
 
   def justTheTwoOfUs(subsets: Set[Set[String]]): Int = {
-    subsets.map(State("AA", Set(), _, 0)).map(backtrack(_, 0, 26)).sum
+    subsets.map(State("AA", Set(), _, 0, 0)).map(backtrack(_, 26)).sum
   }
 
   val partitions: Set[Set[Set[String]]] = (for {
